@@ -1,14 +1,23 @@
 # OCI Generative AI Agent Setup - Hands-On Lab 1
 
-This repository contains a setup script for creating an Oracle Cloud Infrastructure (OCI) Generative AI Agent with security features disabled for hands-on lab exercises.
+This repository contains cross-platform setup scripts for creating an Oracle Cloud Infrastructure (OCI) Generative AI Agent with security features disabled for hands-on lab exercises.
 
 ## Overview
 
-The `handson_lab1_setup.sh` script automates the creation of:
+The setup scripts automate the creation of:
 
 - A Generative AI Agent named "HandsOnLab1"
 - An agent endpoint with security features disabled
 - All necessary configuration files for easy cleanup
+
+## Available Scripts
+
+| Platform | Script | Description |
+|----------|--------|-------------|
+| **macOS/Linux** | `handson_lab1_setup.sh` | Bash script for Unix-based systems |
+| **Windows** | `handson_lab1_setup.ps1` | PowerShell script for Windows |
+| **Cleanup (macOS/Linux)** | `cleanup_agent.sh` | Bash cleanup script |
+| **Cleanup (Windows)** | `cleanup_agent.ps1` | PowerShell cleanup script |
 
 ## Prerequisites
 
@@ -49,19 +58,21 @@ You'll need:
 
 ### 3. Required Tools
 
+**For macOS/Linux:**
+
 Install `jq` for JSON parsing:
 
-**macOS:**
-
 ```bash
+# macOS
 brew install jq
-```
 
-**Linux (Ubuntu/Debian):**
-
-```bash
+# Linux (Ubuntu/Debian)
 sudo apt-get install jq
 ```
+
+**For Windows:**
+
+PowerShell 5.1 or later is required (included with Windows 10/11). No additional tools needed.
 
 ## Supported Regions
 
@@ -73,7 +84,9 @@ The script supports the following regions for Generative AI Agents:
 
 ## Usage
 
-### Basic Usage
+### macOS/Linux (Bash)
+
+**Basic Usage:**
 
 Run the script with default settings (uses your OCI config):
 
@@ -81,7 +94,7 @@ Run the script with default settings (uses your OCI config):
 ./handson_lab1_setup.sh
 ```
 
-### Advanced Usage
+**Advanced Usage:**
 
 Specify compartment, region, and profile:
 
@@ -89,30 +102,62 @@ Specify compartment, region, and profile:
 ./handson_lab1_setup.sh [COMPARTMENT_ID] [REGION] [PROFILE]
 ```
 
-### Examples
-
-**Use defaults from ~/.oci/config:**
+**Examples:**
 
 ```bash
+# Use defaults from ~/.oci/config
 ./handson_lab1_setup.sh
-```
 
-**Specify compartment only:**
-
-```bash
+# Specify compartment only
 ./handson_lab1_setup.sh ocid1.compartment.oc1..xyz
-```
 
-**Specify compartment and region:**
-
-```bash
+# Specify compartment and region
 ./handson_lab1_setup.sh ocid1.compartment.oc1..xyz us-chicago-1
+
+# Specify all parameters
+./handson_lab1_setup.sh ocid1.compartment.oc1..xyz us-chicago-1 myprofile
 ```
 
-**Specify all parameters:**
+### Windows (PowerShell)
 
-```bash
-./handson_lab1_setup.sh ocid1.compartment.oc1..xyz us-chicago-1 myprofile
+**Basic Usage:**
+
+Run the script with default settings (uses your OCI config):
+
+```powershell
+.\handson_lab1_setup.ps1
+```
+
+**Advanced Usage:**
+
+Specify compartment, region, and profile:
+
+```powershell
+.\handson_lab1_setup.ps1 [COMPARTMENT_ID] [REGION] [PROFILE]
+```
+
+**Examples:**
+
+```powershell
+# Use defaults from ~/.oci/config
+.\handson_lab1_setup.ps1
+
+# Specify compartment only
+.\handson_lab1_setup.ps1 ocid1.compartment.oc1..xyz
+
+# Specify compartment and region
+.\handson_lab1_setup.ps1 ocid1.compartment.oc1..xyz us-chicago-1
+
+# Specify all parameters
+.\handson_lab1_setup.ps1 ocid1.compartment.oc1..xyz us-chicago-1 myprofile
+```
+
+**Note for Windows Users:**
+
+If you encounter execution policy restrictions, you may need to run:
+
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
 ## What the Script Does
@@ -227,6 +272,8 @@ python main.py
 
 When you're done with the lab, clean up the resources:
 
+### macOS/Linux
+
 ```bash
 ./cleanup_agent.sh [PROFILE]
 ```
@@ -241,7 +288,23 @@ When you're done with the lab, clean up the resources:
 ./cleanup_agent.sh myprofile
 ```
 
-The cleanup script will:
+### Windows
+
+```powershell
+.\cleanup_agent.ps1 [PROFILE]
+```
+
+**Examples:**
+
+```powershell
+# Use default profile
+.\cleanup_agent.ps1
+
+# Use specific profile
+.\cleanup_agent.ps1 myprofile
+```
+
+The cleanup scripts will:
 
 1. Delete the agent endpoint
 2. Delete the agent
@@ -263,6 +326,7 @@ The cleanup script will:
 **3. "jq is required but not installed"**
 
 - Install jq: `brew install jq` (macOS) or `sudo apt-get install jq` (Linux)
+- **Windows users:** Use the PowerShell script which doesn't require jq
 
 **4. "Region may not support Generative AI Agents"**
 
@@ -278,7 +342,11 @@ The cleanup script will:
 **Show script usage:**
 
 ```bash
+# macOS/Linux
 ./handson_lab1_setup.sh --help
+
+# Windows
+.\handson_lab1_setup.ps1 --help
 ```
 
 **Check OCI CLI version:**
@@ -297,9 +365,11 @@ oci iam compartment list --limit 1
 
 ```
 HandsOnLab1/
-├── handson_lab1_setup.sh    # Main setup script
+├── handson_lab1_setup.sh    # Main setup script (macOS/Linux)
+├── handson_lab1_setup.ps1   # Main setup script (Windows)
+├── cleanup_agent.sh         # Generated cleanup script (macOS/Linux)
+├── cleanup_agent.ps1        # Generated cleanup script (Windows)
 ├── README.md                # This file
-├── cleanup_agent.sh         # Generated cleanup script
 ├── agent_id.txt            # Generated agent OCID
 ├── endpoint_id.txt         # Generated endpoint OCID
 └── endpoint_url.txt        # Generated endpoint URL
