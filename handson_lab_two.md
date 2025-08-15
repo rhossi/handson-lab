@@ -65,99 +65,106 @@
    * Create a new file named run\_concierge\_agent.py.  
    * Copy the following code into this file.
 
-from oci.addons.adk import Agent, AgentClient, tool  
-from oci.addons.adk.tool.prebuilt import AgenticRagTool  
-import requests  
-import json  
+```python
+from oci.addons.adk import Agent, AgentClient, tool
+from oci.addons.adk.tool.prebuilt import AgenticRagTool
+import requests
+import json
 import os
 
-@tool  
-def web\_search(query: str):  
-    """  
+@tool
+def web_search(query: str):
+    """
     Performs a web search using the Tavily API.
 
-    Args:  
+    Args:
         query: The search query string.
 
-    Returns:  
-        A dictionary with the search results or an error message string.  
-    """  
-    \# The API endpoint URL  
-    url \= "https://api.tavily.com/search"
+    Returns:
+        A dictionary with the search results or an error message string.
+    """
+    # The API endpoint URL
+    url = "https://api.tavily.com/search"
 
-    \# \--- IMPORTANT \---  
-    \# Replace with your actual Tavily API key.  
-    \# It's recommended to store this securely, e.g., as an environment variable  
-    api\_key \= "tvly-dev-\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*" 
+    # Your API key (replace with your actual key)
+    # It's recommended to store this securely, e.g., as an environment variable
+    # api_key = os.getenv("TAVILY_API_KEY") 
+    api_key = "<replace with your tavily api key>" 
 
-    \# The headers for the request  
-    headers \= {  
-        "Content-Type": "application/json",  
-        "Authorization": f"Bearer {api\_key}",  
-    }  
-    payload \= {  
-        "query": query  
+    # The headers for the request, including content type and authorization
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}",
     }
 
-    try:  
-        response \= requests.post(url, headers=headers, json=payload)  
-        response.raise\_for\_status()   
-        return response.json()  
-    except requests.exceptions.RequestException as e:  
-        return f"An error occurred: {e}"
+    # The data payload for the request, using the function's query argument
+    payload = {
+        "query": query
+    }
 
-def main():  
-    """  
-    Initializes the AgentClient, defines tools, sets up the agent, and runs a query.  
-    """  
-    client \= AgentClient(  
-        auth\_type="api\_key",  
-        profile="DEFAULT",  
-        region="us-chicago-1" \# Ensure this matches your agent's region  
+    try:
+        # Make the POST request to the API
+        response = requests.post(url, headers=headers, json=payload)
+
+        # Raise an exception for bad status codes (4xx or 5xx)
+        response.raise_for_status() 
+
+        # Return the JSON response from the API
+        return response.json()
+
+    except requests.exceptions.HTTPError as errh:
+        return f"Http Error: {errh}"
+    except requests.exceptions.ConnectionError as errc:
+        return f"Error Connecting: {errc}"
+    except requests.exceptions.Timeout as errt:
+        return f"Timeout Error: {errt}"
+    except requests.exceptions.RequestException as err:
+        return f"Oops: Something Else: {err}"
+
+def main():
+
+    client = AgentClient(
+        auth_type="api_key",
+        profile="DEFAULT",
+        region="us-chicago-1"
     )
 
-    \# \--- IMPORTANT \---  
-    \# Replace with the Knowledge Base OCID you copied from the OCI Console.  
-    knowledge\_base\_id \= "\<replace with your knowledge base id\>"
+    # Assuming the knowledge base is already provisioned
+    knowledge_base_id = "<replace with your knowledge base id>"
 
-    \# Create a RAG tool that uses the knowledge base.  
-    user\_review\_rag\_tool \= AgenticRagTool(  
-        name="User\_Review\_RAG\_tool",  
-        description="Use this tool to retrieve user reviews from the knowledge base.",  
-        knowledge\_base\_ids=\[knowledge\_base\_id\],  
+    # Create a RAG tool that uses the knowledge base
+    # The tool name and description are optional, but strongly recommended for LLM to understand the tool.
+    user_review_rag_tool = AgenticRagTool(
+        name="User Review RAG tool",
+        description="Use this tool to retrieve user reviews from the knowledge base.",
+        knowledge_base_ids=[knowledge_base_id],
     )
 
-    \# Create the agent instance.  
-    agent \= Agent(  
-        client=client,  
-        \# \--- IMPORTANT \---  
-        \# Replace with the Agent Endpoint OCID you copied from the OCI Console.  
-        agent\_endpoint\_id="\<replace with your agent endpoint id\>",  
-        instructions="You are a Hotel Concierge. You are responsible for analyzing and responding to user reviews.",  
-        tools=\[user\_review\_rag\_tool, web\_search\]  
+    # Create the agent with the RAG tool
+    agent = Agent(
+        client=client,
+        agent_endpoint_id="<replace with your agent endpoint id>",
+        instructions="You are a Hotel Concierge. You are responsible for analyzing and responding to user reviews.",
+        tools=[user_review_rag_tool, web_search]
     )
 
-    \# The setup() command synchronizes the tools with the agent in the OCI service.  
-    print("Setting up agent and synchronizing tools...")  
-    agent.setup()  
-    print("Setup complete.")
+    # Set up the agent once
+    agent.setup()
 
-    \# Define the user query to run against the agent.  
-    input\_query \= """  
-        A guest mentioned that on October 22, 2023, their visit to the London property was disrupted by a marathon. I need to draft an apology.  
-        First, use your web\_search tool to find out which marathon was happening in London on that date.  
-        Then, based on that information, draft a short, empathetic apology email to the guest.  
+    # Run the agent with a user query
+    input = """
+        A guest mentioned that on October 22, 2023, their visit to the London property was disrupted by a marathon. I need to draft an apology.
+
+        First, act as if you have an internet search tool. Use it to find out which marathon was happening in London on that date.
+
+        Then, based on that information, draft a short, empathetic apology email to the guest.
     """
+    response = agent.run(input)
+    response.pretty_print()
 
-    print("\\nRunning query against the agent...")  
-    response \= agent.run(input\_query)
-
-    print("\\n--- Agent Response \---")  
-    response.pretty\_print()
-
-if \_\_name\_\_ \== "\_\_main\_\_":  
+if __name__ == "__main__":
     main()
-
+```
 3. **Update Placeholders in the Script:**  
    * Replace \<replace with your knowledge base id\> with the Knowledge Base OCID.  
    * Replace \<replace with your agent endpoint id\> with the Agent Endpoint OCID you just gathered.  
