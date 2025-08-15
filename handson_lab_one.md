@@ -48,7 +48,7 @@ This workshop is designed to be completed entirely within the OCI Generative AI 
 
 ### **Conclusion & Value**
 
-In this short workshop, you've used OCI Generative AI to create a powerful, automated workflow for handling international customer feedback.
+In this short workshop, you've successfully proven the value of using OCI Generative AI to handle international customer feedback. 
 
 With just two prompts, you were able to:
 
@@ -56,4 +56,6 @@ With just two prompts, you were able to:
 * **Analyze** the guest's sentiment.  
 * **Translate** the entire review into English.
 
-For the hospitality industry, this capability is transformative. It allows hotel and tourism operators to monitor global brand reputation in near real-time, quickly identify and address issues raised by international guests, and improve the overall customer experience, leading to better reviews and increased bookings.
+This is a great first step, but it's just the beginning. Imagine the true power if your AI could have a conversation with you, not just about one review, but with knowledge of all the reviews in your entire dataset. What if it could not only analyze feedback but also help you solve the problems guests raise by finding new information?
+
+This is where we move from simple analysis to true intelligence. In our next lab, we will take this concept to the next level by building an AI Concierge using the OCI Generative AI Agents service. We will give our AI a memory of all guest feedback and even teach it new skills, transforming it from a simple tool into a powerful assistant.
