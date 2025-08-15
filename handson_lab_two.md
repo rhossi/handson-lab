@@ -6,7 +6,7 @@
 
 **Dataset:** We will continue using the "Trip Advisor Hotel Reviews" dataset from Kaggle.
 
-[https://www.kaggle.com/datasets/andrewmv/trip-advisor-hotel-reviews](https://www.google.com/search?q=https://www.kaggle.com/datasets/andrewmv/trip-advisor-hotel-reviews)
+https://www.kaggle.com/datasets/andrewmvd/trip-advisor-hotel-reviews
 
 ### **Part 1: Console Setup and RAG Test (20 mins)**
 
