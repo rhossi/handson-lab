@@ -1,73 +1,84 @@
 ## **OCI Generative AI Agents Workshop: Building an AI-Powered Hotel Concierge**
 
-**Story Continuation:** In our last workshop, you, as the hotel manager, were impressed by how OCI Generative AI could instantly analyze and translate a single guest review. The success of that pilot has led to a new project: creating a true "AI Concierge." Instead of looking at one review at a time, this AI agent will have knowledge of **all** guest feedback and will even be able to search for external information to help you solve guest problems more effectively.
+**Story Continuation:** In our last workshop, you, as the hotel manager, were impressed by how OCI Generative AI could instantly analyze and translate a single guest review. The success of that pilot has led to a new project: creating a true "AI Concierge." Instead of looking at one review at a time, this AI agent will have knowledge of **all** guest feedback. Now, using the OCI Agent Development Kit (ADK), we will give it a real tool to search the internet and solve guest problems with live information.
 
-**Use Case:** We will create a **Generative AI Agent** that uses the entire Trip Advisor review dataset as its knowledge base (a technique called Retrieval-Augmented Generation or RAG). We will then ask the agent complex questions that require it to synthesize information from multiple reviews. Finally, we'll simulate how this agent could use a function/tool to search the internet for real-time information related to a guest's comment.
+**Use Case:** We will create a **Generative AI Agent** that uses the entire Trip Advisor review dataset as its knowledge base (RAG). We will then use a local Python script and the OCI ADK to enhance this agent with a custom web\_search tool, allowing it to answer questions that require both internal knowledge and real-time external information.
 
 **Dataset:** We will continue using the "Trip Advisor Hotel Reviews" dataset from Kaggle.
 
-[https://www.kaggle.com/datasets/andrewmvd/trip-advisor-hotel-reviews](https://www.kaggle.com/datasets/andrewmvd/trip-advisor-hotel-reviews)
+[https://www.kaggle.com/datasets/andrewmv/trip-advisor-hotel-reviews](https://www.google.com/search?q=https://www.kaggle.com/datasets/andrewmv/trip-advisor-hotel-reviews)
 
-### **Part 1: The All-Knowing Concierge (RAG in the Console) \- (20 mins)**
+### **Part 1: Console Setup and RAG Test (20 mins)**
 
-In this part, we give our agent a memory by letting it read all the hotel reviews at once.
+*In this part, we will prepare the necessary resources and test the RAG functionality in the OCI Console.*
 
-#### **Step 1: Create the Knowledge Base (10 mins)**
+#### **Step 1: Create the Knowledge Base**
 
 1. **Upload Dataset to Object Storage:**  
    * In the OCI Console, navigate to **Storage** \> **Object Storage & Archive Storage**.  
    * Create a new bucket named hotel-reviews-knowledge-base.  
-   * Upload the tripadvisor\_hotel\_reviews.csv file you downloaded from Kaggle into this bucket.  
+   * Upload the tripadvisor\_hotel\_reviews.csv file into this bucket.  
 2. **Create a Knowledge Base in Gen AI Agents:**  
    * Navigate to **Analytics & AI** \> **AI Services** \> **Generative AI Agents**.  
    * On the left menu, click **Knowledge Bases**, then **Create knowledge base**.  
    * Name it Hotel\_Reviews\_KB.  
-   * For the data source, select the hotel-reviews-knowledge-base bucket you just created. The service will now process the CSV file, making it searchable. This may take a few minutes.
+   * For the data source, select the hotel-reviews-knowledge-base bucket.
 
-#### **Step 2: Create and Test the Agent (10 mins)**
+#### **Step 2: Create, Test, and Prepare the Agent**
 
-1. **Create the Agent:**  
+1. **Create the Agent with RAG Tool:**  
    * On the left menu, click **Agents**, then **Create agent**.  
    * Name your agent AI\_Hotel\_Concierge.  
-   * Click **Next** to go to the "Add Tool" screen.  
-2. **Add the RAG Tool:**  
+   * Click **Next**.  
    * Click **Add tool** and select **Retrieval Augmented Generation**.  
-   * Select the Hotel\_Reviews\_KB you created in the previous step. This connects your agent to the review data.  
-   * Click **Create**.  
-3. **Chat with Your Agent:**  
+   * Select the Hotel\_Reviews\_KB you created.  
+   * Click **Next**.  
+2. **Create an Endpoint:**  
+   * On the next screen, select **Automatically create an endpoint for this agent**. This is essential for the ADK to connect later.  
+   * Click **Next**, then **Create agent**.  
+3. **Chat with and Test Your RAG Agent:**  
    * Once the agent is active, click **Launch chat**.  
-   * Now, ask questions that require searching across the whole dataset. Try these prompts:  
+   * Test its knowledge from the dataset to confirm the RAG tool is working:  
      * "Summarize the most common positive comments people make about their rooms."  
-     * "Are there any negative reviews that mention the check-in process? Please provide a quote from one of them."  
-     * "What do Spanish-speaking guests say about the food?"  
-   * You'll see the agent provide answers based on the content of the CSV file, complete with citations.
+     * "Are there any negative reviews that mention the check-in process?"  
+4. **Gather Required OCIDs:**  
+   * Navigate to the **Knowledge Bases** page, click on your Hotel\_Reviews\_KB, and copy its **OCID**.  
+   * Navigate to the **Agents** page, click on your AI\_Hotel\_Concierge agent, go to the **Endpoints** tab, and copy the **Endpoint OCID**.  
+   * Save these two OCIDs. You will need them for the Python script.
 
-### **Part 2: The Problem-Solving Concierge (Simulating Function Calls) \- (10 mins)**
+### **Part 2: The Problem-Solving Concierge (Live Tool with OCI ADK) \- (15 mins)**
 
-Now, let's give our agent a new skill: the ability to look for information *outside* of its knowledge base.
+*This part moves from the console to your local machine to run the Python script.*
 
-#### **Step 3: The Scenario and the Simulated Tool**
+#### **Step 3: Create and Run the ADK Script**
 
-1. **The Scenario:** A guest left a review saying, "The hotel was great, but the streets were completely blocked on Saturday because of some marathon, making it impossible to get a taxi." Your agent's knowledge base contains the review, but it knows nothing about a marathon. To help the guest, you need to know what event they are talking about.  
-2. **Simulating a Function Call:** In a real application built with the ADK (Agent Development Kit), you would give the agent a search\_internet(query) tool. For this console-based workshop, we will simulate this by telling the agent in our prompt to *act as if* it has this tool.
+1. **Setup Your Local Environment:**  
+   * Ensure you have Python 3.10+ and an OCI configuration file (\~/.oci/config).  
+   * Create and activate a virtual environment:  
+     python3 \-m venv oci-agent-env  
+     source oci-agent-env/bin/activate
 
-#### **Step 4: Test the Function Call Simulation**
+   * Install libraries:  
+     pip install "oci\[adk\]" requests
 
-1. **Go back to the chat** with your AI\_Hotel\_Concierge.  
-2. **Use a prompt that implies a tool is needed:**  
-   A guest mentioned that on October 22, 2023, their visit to the London property was disrupted by a marathon. I need to draft an apology. 
+2. **Create the Python Script:**  
+   * Create a new file named run\_concierge\_agent.py.  
+   * Copy the code from the canvas below into this file.  
+3. **Update Placeholders in the Script:**  
+   * Replace \<replace with your knowledge base id\> with the Knowledge Base OCID.  
+   * Replace \<replace with your agent endpoint id\> with the Agent Endpoint OCID you just gathered.  
+   * Replace the placeholder tvly-dev-\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* with your Tavily AI API key.  
+4. **Run the Agent:**  
+   * Execute the script from your terminal:  
+     python run\_concierge\_agent.py
 
-   First, act as if you have an internet search tool. Use it to find out which marathon was happening in London on that date. 
-
-   Then, based on that information, draft a short, empathetic apology email to the guest.
-
-3. **Review the Output:** The underlying model is smart enough to understand the instruction. It will use its general world knowledge to identify the likely marathon and then use that "retrieved" information to complete the second part of the task—drafting the email. This demonstrates the agent's reasoning capability and how it would use a tool if one were provided via code.
+   * The script will connect to your existing agent. The agent.setup() command will synchronize the tools, notice the new web\_search tool in your code, and add it to your agent's capabilities without removing the RAG tool you added in the console. It will then run the query and print the final response.
 
 ### **Conclusion & Value**
 
-You have now completed the journey from a simple AI analyst to building a sophisticated AI Agent.
+You have now successfully built and extended a Generative AI Agent with a custom, live tool.
 
-* **Part 1** showed how **RAG** can turn a static dataset into a dynamic, searchable knowledge base, allowing you to uncover deep insights from all your business data.  
-* **Part 2** demonstrated the concept of **Function Calling**, showing how an agent can be extended to interact with external systems, find real-time information, and take action, moving from a simple chatbot to a true AI assistant.
+* **Part 1** showed how **RAG** can turn a static dataset into a dynamic, searchable knowledge base, allowing you to uncover deep insights from all your business data directly in the OCI console.  
+* **Part 2** demonstrated how the **OCI ADK** bridges the gap between the AI agent in the cloud and your own custom code. By adding a web\_search tool, you transformed the agent from a simple data retriever into an active problem-solver that can use real-time, external information to take action.
 
 This two-part workshop series shows the clear path for adopting Generative AI in the enterprise: start simple in the console to prove value, and then scale to powerful, integrated AI Agents to solve complex, real-world business problems.
