@@ -28,23 +28,25 @@ This workshop is designed to be completed entirely within the OCI Generative AI 
 
 1. **Select the Right Model:** In the Playground, choose one of the "Grok" models. These models have strong multilingual capabilities.  
 2. **Craft Your Prompt:** Your prompt will ask the model to perform two tasks at once: summarization and sentiment analysis.  
-3. **Paste and Instruct:** In the input box, type the following prompt, and then paste the non-English review you copied in Step 1 right after it:  
+3. **Paste and Instruct:** In the input box, type the following prompt, and then paste the non-English review you copied in Step 1 right after it:
+   ```
    Analyze the following hotel review. First, provide a one-paragraph summary of the review in its original language. After the summary, identify the sentiment as Positive, Negative, or Neutral.
 
    Here is the review:  
-   \[PASTE THE NON-ENGLISH REVIEW TEXT HERE\]
-
-4. **Generate and Review:** Click the **Generate** button. The AI model will read the review and, in the output box, generate a summary in the *original language* (e.g., Spanish) and then provide the overall sentiment. This shows the model's ability to comprehend and work within different languages.
+   [PASTE THE NON-ENGLISH REVIEW TEXT HERE]
+   ```
+5. **Generate and Review:** Click the **Generate** button. The AI model will read the review and, in the output box, generate a summary in the *original language* (e.g., Spanish) and then provide the overall sentiment. This shows the model's ability to comprehend and work within different languages.
 
 #### **Step 4: Translate the Review for Management (5 mins)**
 
 1. **Start a New Chat:** Clear the input and output from the previous step.  
-2. **Craft a Translation Prompt:** In the input box, type a simple, direct prompt for translation:  
+2. **Craft a Translation Prompt:** In the input box, type a simple, direct prompt for translation:
+   ```
    Translate the following hotel review into English:
 
-   \[PASTE THE SAME NON-ENGLISH REVIEW TEXT HERE\]
-
-3. **Generate and Review:** Click **Generate**. The model will now provide a full and accurate English translation of the guest's review, making it immediately understandable for an English-speaking manager.
+   [PASTE THE SAME NON-ENGLISH REVIEW TEXT HERE]
+   ```
+4. **Generate and Review:** Click **Generate**. The model will now provide a full and accurate English translation of the guest's review, making it immediately understandable for an English-speaking manager.
 
 ### **Conclusion & Value**
 
