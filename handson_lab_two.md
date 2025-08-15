@@ -63,7 +63,101 @@
 
 2. **Create the Python Script:**  
    * Create a new file named run\_concierge\_agent.py.  
-   * Copy the code from the canvas below into this file.  
+   * Copy the following code into this file.
+
+from oci.addons.adk import Agent, AgentClient, tool  
+from oci.addons.adk.tool.prebuilt import AgenticRagTool  
+import requests  
+import json  
+import os
+
+@tool  
+def web\_search(query: str):  
+    """  
+    Performs a web search using the Tavily API.
+
+    Args:  
+        query: The search query string.
+
+    Returns:  
+        A dictionary with the search results or an error message string.  
+    """  
+    \# The API endpoint URL  
+    url \= "https://api.tavily.com/search"
+
+    \# \--- IMPORTANT \---  
+    \# Replace with your actual Tavily API key.  
+    \# It's recommended to store this securely, e.g., as an environment variable  
+    api\_key \= "tvly-dev-\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*" 
+
+    \# The headers for the request  
+    headers \= {  
+        "Content-Type": "application/json",  
+        "Authorization": f"Bearer {api\_key}",  
+    }  
+    payload \= {  
+        "query": query  
+    }
+
+    try:  
+        response \= requests.post(url, headers=headers, json=payload)  
+        response.raise\_for\_status()   
+        return response.json()  
+    except requests.exceptions.RequestException as e:  
+        return f"An error occurred: {e}"
+
+def main():  
+    """  
+    Initializes the AgentClient, defines tools, sets up the agent, and runs a query.  
+    """  
+    client \= AgentClient(  
+        auth\_type="api\_key",  
+        profile="DEFAULT",  
+        region="us-chicago-1" \# Ensure this matches your agent's region  
+    )
+
+    \# \--- IMPORTANT \---  
+    \# Replace with the Knowledge Base OCID you copied from the OCI Console.  
+    knowledge\_base\_id \= "\<replace with your knowledge base id\>"
+
+    \# Create a RAG tool that uses the knowledge base.  
+    user\_review\_rag\_tool \= AgenticRagTool(  
+        name="User\_Review\_RAG\_tool",  
+        description="Use this tool to retrieve user reviews from the knowledge base.",  
+        knowledge\_base\_ids=\[knowledge\_base\_id\],  
+    )
+
+    \# Create the agent instance.  
+    agent \= Agent(  
+        client=client,  
+        \# \--- IMPORTANT \---  
+        \# Replace with the Agent Endpoint OCID you copied from the OCI Console.  
+        agent\_endpoint\_id="\<replace with your agent endpoint id\>",  
+        instructions="You are a Hotel Concierge. You are responsible for analyzing and responding to user reviews.",  
+        tools=\[user\_review\_rag\_tool, web\_search\]  
+    )
+
+    \# The setup() command synchronizes the tools with the agent in the OCI service.  
+    print("Setting up agent and synchronizing tools...")  
+    agent.setup()  
+    print("Setup complete.")
+
+    \# Define the user query to run against the agent.  
+    input\_query \= """  
+        A guest mentioned that on October 22, 2023, their visit to the London property was disrupted by a marathon. I need to draft an apology.  
+        First, use your web\_search tool to find out which marathon was happening in London on that date.  
+        Then, based on that information, draft a short, empathetic apology email to the guest.  
+    """
+
+    print("\\nRunning query against the agent...")  
+    response \= agent.run(input\_query)
+
+    print("\\n--- Agent Response \---")  
+    response.pretty\_print()
+
+if \_\_name\_\_ \== "\_\_main\_\_":  
+    main()
+
 3. **Update Placeholders in the Script:**  
    * Replace \<replace with your knowledge base id\> with the Knowledge Base OCID.  
    * Replace \<replace with your agent endpoint id\> with the Agent Endpoint OCID you just gathered.  
