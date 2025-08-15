@@ -166,9 +166,9 @@ if __name__ == "__main__":
     main()
 ```
 3. **Update Placeholders in the Script:**  
-   * Replace \<replace with your knowledge base id\> with the Knowledge Base OCID.  
-   * Replace \<replace with your agent endpoint id\> with the Agent Endpoint OCID you just gathered.  
-   * Replace the placeholder tvly-dev-\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* with your Tavily AI API key.  
+   * Replace the placeholder \<replace with your knowledge base id\> with the Knowledge Base OCID.  
+   * Replace the placeholder \<replace with your agent endpoint id\> with the Agent Endpoint OCID you just gathered.  
+   * Replace the placeholder \<replace with your tavily api key\> with your Tavily AI API key.  
 4. **Run the Agent:**  
    * Execute the script from your terminal:  
      python run\_concierge\_agent.py
