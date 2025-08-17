@@ -121,139 +121,20 @@ Download the Markdown dataset from Github: ADD_LINK_TO_GITHUB
      cd into the directory you cloned the repository or saved the python file
      uv venv
      source .venv/bin/activate
+     uv pip install -e .
 
-   - Install libraries:  
-     uv pip install "oci\[adk\]" requests
+4. **Open and prepare the required files:**  
+   - Open the file named concierge\_agent.py.  
+   - Copy the file .env.example and rename to .env
 
-4. **Create the Python Script:**  
-   - Create a new file named concierge\_agent.py.  
-   - Copy the following code into this file.
-
-```python
-from oci.addons.adk import Agent, AgentClient, tool
-from oci.addons.adk.tool.prebuilt import AgenticRagTool
-import requests
-import json
-import os
-from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv()
-
-# Load configuration from environment variables
-TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
-AGENT_ENDPOINT_ID = os.getenv("AGENT_ENDPOINT_ID")
-KNOWLEDGE_BASE_ID = os.getenv("KNOWLEDGE_BASE_ID")
-
-# Validate that required environment variables are set
-if not TAVILY_API_KEY:
-    raise ValueError("TAVILY_API_KEY environment variable is required")
-if not AGENT_ENDPOINT_ID:
-    raise ValueError("AGENT_ENDPOINT_ID environment variable is required")
-if not KNOWLEDGE_BASE_ID:
-    raise ValueError("KNOWLEDGE_BASE_ID environment variable is required")
-
-@tool
-def web_search(query: str):
-    """
-    Performs a web search using the Tavily API.
-
-    Args:
-        query: The search query string.
-
-    Returns:
-        A dictionary with the search results or an error message string.
-    """
-    # The API endpoint URL
-    url = "https://api.tavily.com/search"
-
-    # Use the API key from environment variables
-    api_key = TAVILY_API_KEY 
-
-    # The headers for the request, including content type and authorization
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {api_key}",
-    }
-
-    # The data payload for the request, using the function's query argument
-    payload = {
-        "query": query
-    }
-
-    try:
-        # Make the POST request to the API
-        response = requests.post(url, headers=headers, json=payload)
-
-        # Raise an exception for bad status codes (4xx or 5xx)
-        response.raise_for_status() 
-
-        # Return the JSON response from the API
-        return response.json()
-
-    except requests.exceptions.HTTPError as errh:
-        return f"Http Error: {errh}"
-    except requests.exceptions.ConnectionError as errc:
-        return f"Error Connecting: {errc}"
-    except requests.exceptions.Timeout as errt:
-        return f"Timeout Error: {errt}"
-    except requests.exceptions.RequestException as err:
-        return f"Oops: Something Else: {err}"
-
-
-def main():
-
-    client = AgentClient(
-        auth_type="api_key",
-        profile="DEFAULT",
-        region="us-chicago-1"
-    )
-
-    # Use the knowledge base ID from environment variables
-    knowledge_base_id = KNOWLEDGE_BASE_ID
-
-    # Create a RAG tool that uses the knowledge base
-    # The tool name and description are optional, but strongly recommended for LLM to understand the tool.
-    user_review_rag_tool = AgenticRagTool(
-        name="User Review RAG tool",
-        description="Use this tool to retrieve user reviews from the knowledge base.",
-        knowledge_base_ids=[knowledge_base_id],
-    )
-
-    # Create the agent with the RAG tool
-    agent = Agent(
-        client=client,
-        agent_endpoint_id=AGENT_ENDPOINT_ID,
-        instructions="You are a Hotel Concierge. You are responsible for analyzing and responding to user reviews. You can use a RAG search tool to find information about the users reviews, and a web search tool to find any additional information you need.",
-        tools=[user_review_rag_tool, web_search]
-    )
-
-    # Set up the agent once
-    agent.setup()
-
-    # Run the agent with a user query
-    input = """
-        A guest mentioned that on October 22, 2023, their visit to the London property was disrupted by a marathon. I need to draft an apology.
-
-        First, act as if you have an internet search tool. Use it to find out which marathon was happening in London on that date.
-
-        Then, based on that information, draft a short, empathetic apology email to the guest.
-    """
-    response = agent.run(input)
-    response.pretty_print()
-
-if __name__ == "__main__":
-    main()
-```
-
-5. **Update Placeholders in the Script:**  
+5. **Update Placeholders in the .env:**  
    - Replace the placeholder \<replace with your knowledge base id\> with the Knowledge Base OCID.  
    - Replace the placeholder \<replace with your agent endpoint id\> with the Agent Endpoint OCID you just gathered.  
    - Replace the placeholder \<replace with your tavily api key\> with your Tavily AI API key.  
 
 6. **Run the Agent:**  
    - Execute the script from your terminal:  
-     python run\_concierge\_agent.py
+     python concierge\_agent.py
 
    - The script will connect to your existing agent. The agent.setup() command will synchronize the tools, notice the new web\_search tool in your code, and add it to your agent's capabilities without removing the RAG tool you added in the console. It will then run the query and print the final response.
 
