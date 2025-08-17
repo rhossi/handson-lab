@@ -1,0 +1,8 @@
+README.md
+pyproject.toml
+handson_lab.egg-info/PKG-INFO
+handson_lab.egg-info/SOURCES.txt
+handson_lab.egg-info/dependency_links.txt
+handson_lab.egg-info/requires.txt
+handson_lab.egg-info/top_level.txt
+labs/main.py
