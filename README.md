@@ -116,7 +116,7 @@ Run the script with default settings (uses your OCI config):
 
 ```bash
 chmod +x lab-2/setup.sh
-.lab2/handson_lab1_setup.sh
+.lab2/setup.sh
 ```
 
 **Advanced Usage:**
@@ -214,12 +214,12 @@ Creates an agent endpoint with:
 
 ### 4. Output Files
 
-The script creates several files for reference:
+The script creates several files for reference.
 
-- `agent_id.txt` - The created agent's OCID
-- `endpoint_id.txt` - The created endpoint's OCID
-- `endpoint_url.txt` - The endpoint URL for API calls
-- `cleanup_agent.sh` - Script to delete the agent and endpoint
+- `*-agent_id.txt` - The created agent's OCID
+- `*-endpoint_id.txt` - The created endpoint's OCID
+- `*-endpoint_url.txt` - The endpoint URL for API calls
+- `*-cleanup_agent.sh` - Script to delete the agent and endpoint
 
 ## Security Configuration
 
@@ -231,68 +231,6 @@ The script creates several files for reference:
 
 **Do not use this configuration in production environments.**
 
-## Testing Your Agent
-
-### 1. OCI Console Testing
-
-1. Go to OCI Console → Analytics & AI → Generative AI Agents
-2. Find your "HandsOnLab1" agent
-3. Use the built-in chat interface to test
-
-### 2. Using Agent Development Kit (ADK)
-
-```bash
-# Create and activate new virtual environment and install OCI and ADK
-uv init
-source .venv/bin/activate
-uv add oci
-uv add "oci[adk]"
-```
-
-```python
-# Copy the endpoint_id from the endpoint_id.txt file and create your agent
-from typing import Dict, Any
-from oci.addons.adk import Agent, AgentClient, tool
-
-@tool
-def get_weather(location: str) -> Dict[str, Any]:
-    """Get the weather for a given location.
-
-    Args:
-      location(str): The location for which weather is queried
-    """
-    return {"location": location, "temperature": 72, "unit": "F"}
-
-
-def main():
-    client = AgentClient(
-        auth_type="api_key",
-        region="us-chicago-1"
-    )
-
-    agent = Agent(
-        client=client,
-        agent_endpoint_id="<<get the endpoint from the endpoint_id.txt file in your lab home folder>>",
-        instructions="Perform weather queries using the given tools",
-        tools=[get_weather]
-    )
-
-    agent.setup()
-
-    input = "Is it cold in Seattle?"
-    response = agent.run(input)
-
-    response.pretty_print()
-
-if __name__ == "__main__":
-    main()
-```
-
-```bash
-# Run your agent
-python main.py
-```
-
 ## Cleanup
 
 When you're done with the lab, clean up the resources:
@@ -300,23 +238,23 @@ When you're done with the lab, clean up the resources:
 ### macOS/Linux
 
 ```bash
-./cleanup_agent.sh [PROFILE]
+./lab-2/cleanup_agent.sh [PROFILE]
 ```
 
 **Examples:**
 
 ```bash
 # Use default profile
-./cleanup_agent.sh
+./lab-2/cleanup_agent.sh
 
 # Use specific profile
-./cleanup_agent.sh myprofile
+./lab-2/cleanup_agent.sh myprofile
 ```
 
 ### Windows
 
 ```powershell
-.\cleanup_agent.ps1 [PROFILE]
+.\lab-2\cleanup_agent.ps1 [PROFILE]
 ```
 
 **Examples:**
@@ -334,80 +272,6 @@ The cleanup scripts will:
 1. Delete the agent endpoint
 2. Delete the agent
 3. Remove temporary files
-
-## Troubleshooting
-
-### Common Issues
-
-**1. "Invalid value for '--wait-for-state': invalid choice: ACTIVE"**
-
-- ✅ **Fixed:** The script now uses `SUCCEEDED` instead of `ACTIVE`
-
-**2. "OCI CLI not properly configured"**
-
-- Run `oci setup config` to configure your credentials
-- Ensure your ~/.oci/config file exists and is properly formatted
-
-**3. "jq is required but not installed"**
-
-- Install jq: `brew install jq` (macOS) or `sudo apt-get install jq` (Linux)
-- **Windows users:** Use the PowerShell script which doesn't require jq
-
-**4. "Region may not support Generative AI Agents"**
-
-- Use one of the supported regions: `us-chicago-1`, `eu-frankfurt-1`, `ap-osaka-1`
-
-**5. "Could not determine compartment ID"**
-
-- Provide compartment ID as a command line parameter
-- Ensure your OCI config has a valid tenancy OCID
-
-### Getting Help
-
-**Show script usage:**
-
-```bash
-# macOS/Linux
-./handson_lab1_setup.sh --help
-
-# Windows
-.\handson_lab1_setup.ps1 --help
-```
-
-**Check OCI CLI version:**
-
-```bash
-oci --version
-```
-
-**Test OCI CLI configuration:**
-
-```bash
-oci iam compartment list --limit 1
-```
-
-## File Structure
-
-```
-HandsOnLab1/
-├── handson_lab1_setup.sh    # Main setup script (macOS/Linux)
-├── handson_lab1_setup.ps1   # Main setup script (Windows)
-├── cleanup_agent.sh         # Generated cleanup script (macOS/Linux)
-├── cleanup_agent.ps1        # Generated cleanup script (Windows)
-├── README.md                # This file
-├── agent_id.txt            # Generated agent OCID
-├── endpoint_id.txt         # Generated endpoint OCID
-└── endpoint_url.txt        # Generated endpoint URL
-```
-
-## Next Steps
-
-After successful setup:
-
-1. **Test the agent** using the OCI Console
-2. **Explore the API** using the endpoint URL
-3. **Integrate with applications** using the provided credentials
-4. **Clean up resources** when finished
 
 ## Support
 
