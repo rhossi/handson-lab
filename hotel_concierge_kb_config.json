@@ -1,0 +1,13 @@
+{
+  "knowledgeBaseConfigs": [
+    {
+      "displayName": "Hotel_Concierge_Knowledge_Base",
+      "description": "Knowledge base containing TripAdvisor reviews for hotel concierge services",
+      "objectLocation": {
+        "bucketName": "ai-workshop-labs-datasets",
+        "namespaceName": "ax7oybsfq96x",
+        "objectName": "TripAdvisorReviewsMultiLang.md"
+      }
+    }
+  ]
+}
