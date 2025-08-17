@@ -1,12 +1,14 @@
-# OCI Generative AI Agent Setup - Hands-On Lab 1
+# Hands-On Lab Setup
 
 This repository contains cross-platform setup scripts for creating an Oracle Cloud Infrastructure (OCI) Generative AI Agent with security features disabled for hands-on lab exercises.
 
 ## Overview
 
-The setup scripts automate the creation of:
+The setup scripts automate the creation of the infrastructure required by :
 
-- A Generative AI Agent named "HandsOnLab1"
+- Generative AI Agents and endpoints
+- Knowledge Bases
+- RAG Tools
 - An agent endpoint with security features disabled
 - All necessary configuration files for easy cleanup
 
