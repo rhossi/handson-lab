@@ -1,20 +1,28 @@
 #!/bin/bash
 
-# Cleanup script for Hotel Concierge agents
+# =============================================================================
+# OCI Generative AI Agent Cleanup Script - Simplified Version
+# =============================================================================
+# 
+# This script cleans up all OCI Generative AI resources created by the setup script.
+# It reads OCIDs from the GENERATED_OCIDS.txt file and deletes resources in the
+# correct dependency order.
+#
 # Usage: ./cleanup.sh [PROFILE]
+#
+# =============================================================================
 
 PROFILE="${1:-DEFAULT}"
+OCIDS_FILE="GENERATED_OCIDS.txt"
 
+# Color definitions
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-echo -e "${YELLOW}Cleaning up Hotel Concierge agents and endpoints (profile: $PROFILE)...${NC}"
-
-# Track if any cleanup operations were performed
-CLEANUP_PERFORMED=false
+echo -e "${YELLOW}Cleaning up OCI Generative AI resources (profile: $PROFILE)...${NC}"
 
 # Function to build base OCI command with profile
 build_base_oci_command() {
@@ -25,110 +33,131 @@ build_base_oci_command() {
     fi
 }
 
-# Clean up first agent endpoint (Hotel_Concierge_Agent)
-if [ -f "hotel_concierge_endpoint_id.txt" ]; then
-    CLEANUP_PERFORMED=true
-    ENDPOINT_ID=$(cat hotel_concierge_endpoint_id.txt)
-    echo -e "${YELLOW}Deleting Hotel Concierge agent endpoint...${NC}"
-    
-    base_cmd=$(build_base_oci_command)
-    cmd="$base_cmd generative-ai-agent agent-endpoint delete \
-        --agent-endpoint-id '$ENDPOINT_ID' \
-        --force \
-        --wait-for-state DELETED \
-        --max-wait-seconds 1800"
-    
-    eval $cmd
-    
-    if [ $? -eq 0 ]; then
-        echo -e "${GREEN}✓ Hotel Concierge agent endpoint deleted${NC}"
-        rm -f hotel_concierge_endpoint_id.txt
+# Function to read OCID from GENERATED_OCIDS.txt
+get_ocid() {
+    local key="$1"
+    if [ -f "$OCIDS_FILE" ]; then
+        grep "^$key=" "$OCIDS_FILE" | cut -d'=' -f2
     else
-        echo -e "${RED}✗ Failed to delete Hotel Concierge agent endpoint${NC}"
+        echo ""
     fi
-else
-    echo -e "${BLUE}⚠ No Hotel Concierge agent endpoint ID file found (hotel_concierge_endpoint_id.txt)${NC}"
+}
+
+# Check if OCIDs file exists
+if [ ! -f "$OCIDS_FILE" ]; then
+    echo -e "${RED}Error: $OCIDS_FILE not found${NC}"
+    echo -e "${YELLOW}Make sure you're running this script from the directory where the setup script was executed.${NC}"
+    exit 1
 fi
 
-# Clean up second agent endpoint (Hotel_Concierge_Agent_ADK)
-if [ -f "hotel_concierge_adk_endpoint_id.txt" ]; then
+# Track if any cleanup operations were performed
+CLEANUP_PERFORMED=false
+base_cmd=$(build_base_oci_command)
+
+# Clean up agent endpoints first (dependency order)
+ENDPOINT_ID=$(get_ocid "HOTEL_CONCIERGE_AGENT_ENDPOINT_ID")
+if [ -n "$ENDPOINT_ID" ]; then
     CLEANUP_PERFORMED=true
-    ENDPOINT_ID=$(cat hotel_concierge_adk_endpoint_id.txt)
     echo -e "${YELLOW}Deleting Hotel Concierge ADK agent endpoint...${NC}"
     
-    base_cmd=$(build_base_oci_command)
     cmd="$base_cmd generative-ai-agent agent-endpoint delete \
         --agent-endpoint-id '$ENDPOINT_ID' \
         --force \
-        --wait-for-state DELETED \
+        --wait-for-state SUCCEEDED \
         --max-wait-seconds 1800"
     
-    eval $cmd
-    
-    if [ $? -eq 0 ]; then
+    if eval $cmd; then
         echo -e "${GREEN}✓ Hotel Concierge ADK agent endpoint deleted${NC}"
-        rm -f hotel_concierge_adk_endpoint_id.txt
     else
         echo -e "${RED}✗ Failed to delete Hotel Concierge ADK agent endpoint${NC}"
     fi
-else
-    echo -e "${BLUE}⚠ No Hotel Concierge ADK agent endpoint ID file found (hotel_concierge_adk_endpoint_id.txt)${NC}"
 fi
 
-# Clean up first agent (Hotel_Concierge_Agent)
-if [ -f "hotel_concierge_agent_id.txt" ]; then
+# Clean up agents
+AGENT_ID=$(get_ocid "HOTEL_CONCIERGE_AGENT_ID")
+if [ -n "$AGENT_ID" ]; then
     CLEANUP_PERFORMED=true
-    AGENT_ID=$(cat hotel_concierge_agent_id.txt)
     echo -e "${YELLOW}Deleting Hotel Concierge agent...${NC}"
     
-    base_cmd=$(build_base_oci_command)
     cmd="$base_cmd generative-ai-agent agent delete \
         --agent-id '$AGENT_ID' \
         --force \
-        --wait-for-state DELETED \
+        --wait-for-state SUCCEEDED \
         --max-wait-seconds 1800"
     
-    eval $cmd
-    
-    if [ $? -eq 0 ]; then
+    if eval $cmd; then
         echo -e "${GREEN}✓ Hotel Concierge agent deleted${NC}"
-        rm -f hotel_concierge_agent_id.txt
     else
         echo -e "${RED}✗ Failed to delete Hotel Concierge agent${NC}"
     fi
-else
-    echo -e "${BLUE}⚠ No Hotel Concierge agent ID file found (hotel_concierge_agent_id.txt)${NC}"
 fi
 
-# Clean up second agent (Hotel_Concierge_Agent_ADK)
-if [ -f "hotel_concierge_agent_adk_id.txt" ]; then
+AGENT_ADK_ID=$(get_ocid "HOTEL_CONCIERGE_AGENT_ADK_ID")
+if [ -n "$AGENT_ADK_ID" ]; then
     CLEANUP_PERFORMED=true
-    AGENT_ID=$(cat hotel_concierge_agent_adk_id.txt)
     echo -e "${YELLOW}Deleting Hotel Concierge ADK agent...${NC}"
     
-    base_cmd=$(build_base_oci_command)
     cmd="$base_cmd generative-ai-agent agent delete \
-        --agent-id '$AGENT_ID' \
+        --agent-id '$AGENT_ADK_ID' \
         --force \
-        --wait-for-state DELETED \
+        --wait-for-state SUCCEEDED \
         --max-wait-seconds 1800"
     
-    eval $cmd
-    
-    if [ $? -eq 0 ]; then
+    if eval $cmd; then
         echo -e "${GREEN}✓ Hotel Concierge ADK agent deleted${NC}"
-        rm -f hotel_concierge_agent_adk_id.txt
     else
         echo -e "${RED}✗ Failed to delete Hotel Concierge ADK agent${NC}"
     fi
-else
-    echo -e "${BLUE}⚠ No Hotel Concierge ADK agent ID file found (hotel_concierge_agent_adk_id.txt)${NC}"
 fi
 
-# Provide appropriate final message based on whether cleanup was performed
+# Clean up knowledge base
+KB_ID=$(get_ocid "KNOWLEDGEBASE_ID")
+if [ -n "$KB_ID" ]; then
+    CLEANUP_PERFORMED=true
+    echo -e "${YELLOW}Deleting knowledge base...${NC}"
+    
+    cmd="$base_cmd generative-ai-agent knowledge-base delete \
+        --knowledge-base-id '$KB_ID' \
+        --force \
+        --wait-for-state SUCCEEDED \
+        --max-wait-seconds 1800"
+    
+    if eval $cmd; then
+        echo -e "${GREEN}✓ Knowledge base deleted${NC}"
+    else
+        echo -e "${RED}✗ Failed to delete knowledge base${NC}"
+    fi
+fi
+
+# Clean up bucket
+BUCKET_ID=$(get_ocid "BUCKET_ID")
+if [ -n "$BUCKET_ID" ]; then
+    CLEANUP_PERFORMED=true
+    echo -e "${YELLOW}Deleting bucket and contents...${NC}"
+    
+    # Delete all objects in the bucket first
+    echo -e "${YELLOW}Deleting objects from bucket...${NC}"
+    cmd="$base_cmd os object bulk-delete --bucket-name 'ai-workshop-labs-datasets' --force"
+    eval $cmd
+    
+    # Delete the bucket
+    cmd="$base_cmd os bucket delete --bucket-name 'ai-workshop-labs-datasets' --force"
+    if eval $cmd; then
+        echo -e "${GREEN}✓ Bucket deleted${NC}"
+    else
+        echo -e "${RED}✗ Failed to delete bucket${NC}"
+    fi
+fi
+
+# Clean up OCIDs file
+if [ -f "$OCIDS_FILE" ]; then
+    rm -f "$OCIDS_FILE"
+    echo -e "${GREEN}✓ OCIDs file removed${NC}"
+fi
+
+# Provide appropriate final message
 if [ "$CLEANUP_PERFORMED" = true ]; then
     echo -e "${GREEN}Cleanup complete!${NC}"
 else
-    echo -e "${YELLOW}No cleanup performed - no agent or endpoint ID files were found.${NC}"
-    echo -e "${YELLOW}Make sure you're running this script from the directory where the setup script was executed.${NC}"
+    echo -e "${YELLOW}No cleanup performed - no valid OCIDs found in $OCIDS_FILE.${NC}"
 fi
