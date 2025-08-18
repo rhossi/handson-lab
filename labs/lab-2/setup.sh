@@ -368,7 +368,16 @@ create_bucket() {
         echo "$BUCKET_ID" > "$output_file"
         return 0
     else
-        # Bucket doesn't exist, create it
+        # Bucket doesn't exist, check if it's a "not found" error or something else
+        if echo "$check_error" | grep -q "BucketNotFound"; then
+            echo -e "${YELLOW}Bucket '${bucket_name}' does not exist. Creating it...${NC}"
+        else
+            echo -e "${RED}✗ Error checking bucket existence${NC}"
+            echo -e "${RED}Error output: ${check_error}${NC}"
+            return 1
+        fi
+        
+        # Create the bucket
         echo -e "${YELLOW}Creating OCI bucket '${bucket_name}'...${NC}"
         
         # Build the OCI command for bucket creation
