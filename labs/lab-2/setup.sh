@@ -342,11 +342,13 @@ create_bucket() {
     
     # Build the OCI command to check if bucket exists
     local base_cmd=$(build_base_oci_command)
-    local check_cmd="$base_cmd os bucket get --bucket-name '$bucket_name'"
+    
+    echo -e "${BLUE}Checking bucket with: $base_cmd os bucket get --bucket-name \"$bucket_name\"${NC}"
     
     # Check if bucket already exists
-    local check_response=$(eval $check_cmd 2>/dev/null)
+    local check_response=$($base_cmd os bucket get --bucket-name "$bucket_name" 2>/tmp/bucket_check_error.log)
     local check_exit_code=$?
+    local check_error=$(cat /tmp/bucket_check_error.log 2>/dev/null || echo "")
     
     if [ $check_exit_code -eq 0 ]; then
         # Bucket exists, extract its ID
@@ -354,6 +356,10 @@ create_bucket() {
         
         if [ "$BUCKET_ID" = "null" ] || [ -z "$BUCKET_ID" ]; then
             echo -e "${RED}✗ Failed to extract bucket ID from existing bucket${NC}"
+            echo -e "${RED}Response: ${check_response}${NC}"
+            if [ -n "$check_error" ]; then
+                echo -e "${RED}Error output: ${check_error}${NC}"
+            fi
             return 1
         fi
         
@@ -366,16 +372,14 @@ create_bucket() {
         echo -e "${YELLOW}Creating OCI bucket '${bucket_name}'...${NC}"
         
         # Build the OCI command for bucket creation
-        local create_cmd="$base_cmd os bucket create \
-            --compartment-id '$COMPARTMENT_ID' \
-            --name '$bucket_name' \
-            --public-access-type 'ObjectRead' \
-            --versioning 'Disabled'"
-        
-        echo -e "${BLUE}Running: ${create_cmd}${NC}"
+        echo -e "${BLUE}Running: $base_cmd os bucket create --compartment-id \"$COMPARTMENT_ID\" --name \"$bucket_name\" --public-access-type \"ObjectRead\" --versioning \"Disabled\"${NC}"
         
         # Execute the command and capture output
-        BUCKET_RESPONSE=$(eval $create_cmd 2>/tmp/bucket_error.log)
+        BUCKET_RESPONSE=$($base_cmd os bucket create \
+            --compartment-id "$COMPARTMENT_ID" \
+            --name "$bucket_name" \
+            --public-access-type "ObjectRead" \
+            --versioning "Disabled" 2>/tmp/bucket_error.log)
         BUCKET_EXIT_CODE=$?
         BUCKET_ERROR=$(cat /tmp/bucket_error.log 2>/dev/null || echo "")
         
