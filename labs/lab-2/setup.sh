@@ -1414,7 +1414,7 @@ main() {
         
         # Upload markdown file to bucket
         if upload_file_to_bucket \
-            "$(pwd)/labs/datasets/TripAdvisorReviewsMultiLang.md" \
+            "$(dirname $(dirname $(pwd)))/labs/datasets/TripAdvisorReviewsMultiLang.md" \
             "ai-workshop-labs-datasets" \
             "tripadvisor_reviews_object_name.txt"; then
             
