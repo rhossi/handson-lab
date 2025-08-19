@@ -17,6 +17,7 @@ Prerequisites:
 import argparse
 import oci
 import os
+import time
 from pathlib import Path
 
 OCIDS_FILE = "GENERATED_OCIDS.txt"
@@ -41,6 +42,30 @@ def load_ocids():
     return ocids
 
 
+def wait_for_resource_deletion(client_method, resource_id, resource_name, max_wait_seconds=300):
+    """Wait for a resource to be deleted by polling its status."""
+    print(f"⏳ Waiting for {resource_name} (ID: {resource_id}) to be fully deleted...")
+    wait_interval = 10
+    start_time = time.time()
+    
+    while time.time() - start_time < max_wait_seconds:
+        try:
+            # Call the getter method for the resource
+            client_method(resource_id)
+            print(f"   - {resource_name} still exists. Waiting {wait_interval}s...")
+            time.sleep(wait_interval)
+        except oci.exceptions.ServiceError as e:
+            if e.status == 404:
+                print(f"✅ {resource_name} has been confirmed as deleted.")
+                return
+            else:
+                print(f"❌ An unexpected error occurred while waiting for {resource_name} deletion: {e.message}")
+                # Re-raise the exception to be handled by the caller
+                raise
+    
+    print(f"⌛️ Timed out after {max_wait_seconds}s waiting for {resource_name} to be deleted.")
+
+
 def delete_agent_tools(agent_client, agent_id, agent_name, compartment_id):
     """Delete all tools for a specific agent."""
     print(f"🔄 Listing tools for {agent_name}...")
@@ -63,7 +88,7 @@ def delete_agent_tools(agent_client, agent_id, agent_name, compartment_id):
             
             try:
                 agent_client.delete_tool(tool_id)
-                print(f"✅ Tool deleted: {tool_name}")
+                wait_for_resource_deletion(agent_client.get_tool, tool_id, f"Tool '{tool_name}'")
             except oci.exceptions.ServiceError as e:
                 if e.status == 404:
                     print(f"⚠️  Tool already deleted: {tool_name}")
@@ -96,10 +121,7 @@ def delete_agent_endpoints(agent_client, agent_id, agent_name, compartment_id):
             
             try:
                 agent_client.delete_agent_endpoint(endpoint_id)
-                print(f"✅ Endpoint deleted: {endpoint_name}")
-                # Wait a moment for the endpoint to be fully deleted
-                import time
-                time.sleep(2)
+                wait_for_resource_deletion(agent_client.get_agent_endpoint, endpoint_id, f"Endpoint '{endpoint_name}'")
             except oci.exceptions.ServiceError as e:
                 if e.status == 404:
                     print(f"⚠️  Endpoint already deleted: {endpoint_name}")
@@ -116,22 +138,10 @@ def delete_agent(agent_client, agent_id, agent_name):
     
     try:
         agent_client.delete_agent(agent_id)
-        print(f"✅ Agent deleted: {agent_name}")
+        wait_for_resource_deletion(agent_client.get_agent, agent_id, f"Agent '{agent_name}'")
     except oci.exceptions.ServiceError as e:
         if e.status == 404:
             print(f"⚠️  Agent already deleted: {agent_name}")
-        elif e.status == 409 and "AgentEndpoint" in e.message:
-            print(f"⚠️  Agent has active endpoints. Waiting for endpoints to be deleted...")
-            import time
-            time.sleep(5)
-            try:
-                agent_client.delete_agent(agent_id)
-                print(f"✅ Agent deleted: {agent_name}")
-            except oci.exceptions.ServiceError as e2:
-                if e2.status == 404:
-                    print(f"⚠️  Agent already deleted: {agent_name}")
-                else:
-                    print(f"❌ Failed to delete agent {agent_name}: {e2.message}")
         else:
             print(f"❌ Failed to delete agent {agent_name}: {e.message}")
 

@@ -14,6 +14,36 @@ The setup scripts automate the creation of:
 
 ### 1. Setup
 
+#### Setting up Git and Git LFS
+
+**macOS:**
+
+```bash
+brew install git
+brew install git-lfs
+git lfs install
+```
+
+**Windows:**
+
+1. Download and install Git from [git-scm.com](https://git-scm.com/download/win).
+2. Download and install Git LFS from [git-lfs.github.com](https://git-lfs.github.com/).
+3. Open a new Git Bash or terminal window and run:
+
+    ```bash
+    git lfs install
+    ```
+
+**Linux (Ubuntu/Debian):**
+
+```bash
+sudo apt-get update
+sudo apt-get install git
+curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
+sudo apt-get install git-lfs
+git lfs install
+```
+
 #### Setting up UV
 
 **macOS/Linux:**
@@ -64,8 +94,19 @@ You'll need:
 ### 2. Download/Clone the Repository
 
 ```bash
+# macOS/Linux/Windows
 git clone git@github.com:rhossi/handson-lab.git
 cd handson-lab
+uv venv
+
+# macOS/Linux
+source .venv/bin/activate
+
+# Windows
+.venv/bin/activate.ps1
+
+# macOS/Linux/Windows
+uv pip install -e .
 ```
 
 Or download the repository as a ZIP file and extract it to your desired location.
