@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # =============================================================================
-# OCI Generative AI Agent Cleanup Script - Simplified Version
+# OCI Generative AI Agent Cleanup Script - Enhanced Version
 # =============================================================================
 # 
 # This script cleans up all OCI Generative AI resources created by the setup script.
 # It reads OCIDs from the GENERATED_OCIDS.txt file and deletes resources in the
-# correct dependency order.
+# correct dependency order: endpoints -> tools -> agents -> knowledge base -> bucket
 #
 # Usage: ./cleanup.sh [PROFILE]
 #
@@ -43,6 +43,125 @@ get_ocid() {
     fi
 }
 
+# Function to wait for work request to complete
+wait_for_work_request() {
+    local work_request_id="$1"
+    local base_cmd="$2"
+    local max_wait=1800
+    local wait_interval=30
+    local elapsed=0
+    
+    echo -e "${YELLOW}Waiting for work request to complete...${NC}"
+    
+    while [ $elapsed -lt $max_wait ]; do
+        local status=$(eval "$base_cmd generative-ai-agent work-request get --work-request-id '$work_request_id'" 2>/dev/null | jq -r '.data.status' 2>/dev/null)
+        
+        case $status in
+            "SUCCEEDED")
+                echo -e "${GREEN}✓ Work request completed successfully${NC}"
+                return 0
+                ;;
+            "FAILED"|"CANCELED")
+                echo -e "${RED}✗ Work request failed with status: $status${NC}"
+                return 1
+                ;;
+            "ACCEPTED"|"IN_PROGRESS"|"WAITING"|"NEEDS_ATTENTION"|"CANCELING")
+                echo -e "${YELLOW}Work request status: $status (elapsed: ${elapsed}s)${NC}"
+                sleep $wait_interval
+                elapsed=$((elapsed + wait_interval))
+                ;;
+            *)
+                echo -e "${YELLOW}Unknown work request status: $status${NC}"
+                sleep $wait_interval
+                elapsed=$((elapsed + wait_interval))
+                ;;
+        esac
+    done
+    
+    echo -e "${RED}✗ Work request timed out after ${max_wait}s${NC}"
+    return 1
+}
+
+# Function to delete agent endpoints
+delete_agent_endpoints() {
+    local agent_id="$1"
+    local base_cmd="$2"
+    
+    echo -e "${YELLOW}Listing endpoints for agent: $agent_id${NC}"
+    
+    # List endpoints for the agent
+    local endpoints=$(eval "$base_cmd generative-ai-agent agent-endpoint list --agent-id '$agent_id'" 2>/dev/null | jq -r '.data[] | .id' 2>/dev/null)
+    
+    if [ -n "$endpoints" ]; then
+        echo "$endpoints" | while read -r endpoint_id; do
+            if [ -n "$endpoint_id" ] && [ "$endpoint_id" != "null" ]; then
+                echo -e "${YELLOW}Deleting endpoint: $endpoint_id${NC}"
+                
+                # Delete endpoint and wait for completion
+                local delete_response=$(eval "$base_cmd generative-ai-agent agent-endpoint delete --agent-endpoint-id '$endpoint_id' --force" 2>&1)
+                local work_request_id=$(echo "$delete_response" | jq -r '.data.id' 2>/dev/null)
+                
+                if [ -n "$work_request_id" ] && [ "$work_request_id" != "null" ]; then
+                    wait_for_work_request "$work_request_id" "$base_cmd"
+                else
+                    echo -e "${GREEN}✓ Endpoint deleted immediately${NC}"
+                fi
+            fi
+        done
+    else
+        echo -e "${YELLOW}No endpoints found for agent${NC}"
+    fi
+}
+
+# Function to delete agent tools
+delete_agent_tools() {
+    local agent_id="$1"
+    local base_cmd="$2"
+    
+    echo -e "${YELLOW}Listing tools for agent: $agent_id${NC}"
+    
+    # List tools for the agent
+    local tools=$(eval "$base_cmd generative-ai-agent tool list --agent-id '$agent_id'" 2>/dev/null | jq -r '.data[] | .id' 2>/dev/null)
+    
+    if [ -n "$tools" ]; then
+        echo "$tools" | while read -r tool_id; do
+            if [ -n "$tool_id" ] && [ "$tool_id" != "null" ]; then
+                echo -e "${YELLOW}Deleting tool: $tool_id${NC}"
+                
+                # Delete tool and wait for completion
+                local delete_response=$(eval "$base_cmd generative-ai-agent tool delete --tool-id '$tool_id' --force" 2>&1)
+                local work_request_id=$(echo "$delete_response" | jq -r '.data.id' 2>/dev/null)
+                
+                if [ -n "$work_request_id" ] && [ "$work_request_id" != "null" ]; then
+                    wait_for_work_request "$work_request_id" "$base_cmd"
+                else
+                    echo -e "${GREEN}✓ Tool deleted immediately${NC}"
+                fi
+            fi
+        done
+    else
+        echo -e "${YELLOW}No tools found for agent${NC}"
+    fi
+}
+
+# Function to delete agent
+delete_agent() {
+    local agent_id="$1"
+    local base_cmd="$2"
+    
+    echo -e "${YELLOW}Deleting agent: $agent_id${NC}"
+    
+    # Delete agent and wait for completion
+    local delete_response=$(eval "$base_cmd generative-ai-agent agent delete --agent-id '$agent_id' --force" 2>&1)
+    local work_request_id=$(echo "$delete_response" | jq -r '.data.id' 2>/dev/null)
+    
+    if [ -n "$work_request_id" ] && [ "$work_request_id" != "null" ]; then
+        wait_for_work_request "$work_request_id" "$base_cmd"
+    else
+        echo -e "${GREEN}✓ Agent deleted immediately${NC}"
+    fi
+}
+
 # Check if OCIDs file exists
 if [ ! -f "$OCIDS_FILE" ]; then
     echo -e "${RED}Error: $OCIDS_FILE not found${NC}"
@@ -54,78 +173,53 @@ fi
 CLEANUP_PERFORMED=false
 base_cmd=$(build_base_oci_command)
 
-# Clean up agent endpoints first (dependency order)
-ENDPOINT_ID=$(get_ocid "HOTEL_CONCIERGE_AGENT_ENDPOINT_ID")
-if [ -n "$ENDPOINT_ID" ]; then
-    CLEANUP_PERFORMED=true
-    echo -e "${YELLOW}Deleting Hotel Concierge ADK agent endpoint...${NC}"
-    
-    cmd="$base_cmd generative-ai-agent agent-endpoint delete \
-        --agent-endpoint-id '$ENDPOINT_ID' \
-        --force \
-        --wait-for-state SUCCEEDED \
-        --max-wait-seconds 1800"
-    
-    if eval $cmd; then
-        echo -e "${GREEN}✓ Hotel Concierge ADK agent endpoint deleted${NC}"
-    else
-        echo -e "${RED}✗ Failed to delete Hotel Concierge ADK agent endpoint${NC}"
-    fi
-fi
-
-# Clean up agents
+# Get agent IDs from the OCIDs file
 AGENT_ID=$(get_ocid "HOTEL_CONCIERGE_AGENT_ID")
+AGENT_ADK_ID=$(get_ocid "HOTEL_CONCIERGE_AGENT_ADK_ID")
+
+# Clean up agents in dependency order
 if [ -n "$AGENT_ID" ]; then
     CLEANUP_PERFORMED=true
-    echo -e "${YELLOW}Deleting Hotel Concierge agent...${NC}"
+    echo -e "${YELLOW}Cleaning up Hotel Concierge Agent: $AGENT_ID${NC}"
     
-    cmd="$base_cmd generative-ai-agent agent delete \
-        --agent-id '$AGENT_ID' \
-        --force \
-        --wait-for-state SUCCEEDED \
-        --max-wait-seconds 1800"
+    # Delete endpoints first
+    delete_agent_endpoints "$AGENT_ID" "$base_cmd"
     
-    if eval $cmd; then
-        echo -e "${GREEN}✓ Hotel Concierge agent deleted${NC}"
-    else
-        echo -e "${RED}✗ Failed to delete Hotel Concierge agent${NC}"
-    fi
+    # Delete tools
+    delete_agent_tools "$AGENT_ID" "$base_cmd"
+    
+    # Delete agent
+    delete_agent "$AGENT_ID" "$base_cmd"
 fi
 
-AGENT_ADK_ID=$(get_ocid "HOTEL_CONCIERGE_AGENT_ADK_ID")
 if [ -n "$AGENT_ADK_ID" ]; then
     CLEANUP_PERFORMED=true
-    echo -e "${YELLOW}Deleting Hotel Concierge ADK agent...${NC}"
+    echo -e "${YELLOW}Cleaning up Hotel Concierge ADK Agent: $AGENT_ADK_ID${NC}"
     
-    cmd="$base_cmd generative-ai-agent agent delete \
-        --agent-id '$AGENT_ADK_ID' \
-        --force \
-        --wait-for-state SUCCEEDED \
-        --max-wait-seconds 1800"
+    # Delete endpoints first
+    delete_agent_endpoints "$AGENT_ADK_ID" "$base_cmd"
     
-    if eval $cmd; then
-        echo -e "${GREEN}✓ Hotel Concierge ADK agent deleted${NC}"
-    else
-        echo -e "${RED}✗ Failed to delete Hotel Concierge ADK agent${NC}"
-    fi
+    # Delete tools
+    delete_agent_tools "$AGENT_ADK_ID" "$base_cmd"
+    
+    # Delete agent
+    delete_agent "$AGENT_ADK_ID" "$base_cmd"
 fi
 
 # Clean up knowledge base
 KB_ID=$(get_ocid "KNOWLEDGEBASE_ID")
 if [ -n "$KB_ID" ]; then
     CLEANUP_PERFORMED=true
-    echo -e "${YELLOW}Deleting knowledge base...${NC}"
+    echo -e "${YELLOW}Deleting knowledge base: $KB_ID${NC}"
     
-    cmd="$base_cmd generative-ai-agent knowledge-base delete \
-        --knowledge-base-id '$KB_ID' \
-        --force \
-        --wait-for-state SUCCEEDED \
-        --max-wait-seconds 1800"
+    # Delete knowledge base and wait for completion
+    local delete_response=$(eval "$base_cmd generative-ai-agent knowledge-base delete --knowledge-base-id '$KB_ID' --force" 2>&1)
+    local work_request_id=$(echo "$delete_response" | jq -r '.data.id' 2>/dev/null)
     
-    if eval $cmd; then
-        echo -e "${GREEN}✓ Knowledge base deleted${NC}"
+    if [ -n "$work_request_id" ] && [ "$work_request_id" != "null" ]; then
+        wait_for_work_request "$work_request_id" "$base_cmd"
     else
-        echo -e "${RED}✗ Failed to delete knowledge base${NC}"
+        echo -e "${GREEN}✓ Knowledge base deleted immediately${NC}"
     fi
 fi
 
@@ -137,12 +231,10 @@ if [ -n "$BUCKET_ID" ]; then
     
     # Delete all objects in the bucket first
     echo -e "${YELLOW}Deleting objects from bucket...${NC}"
-    cmd="$base_cmd os object bulk-delete --bucket-name 'ai-workshop-labs-datasets' --force"
-    eval $cmd
+    eval "$base_cmd os object bulk-delete --bucket-name 'ai-workshop-labs-datasets' --force" 2>/dev/null
     
     # Delete the bucket
-    cmd="$base_cmd os bucket delete --bucket-name 'ai-workshop-labs-datasets' --force"
-    if eval $cmd; then
+    if eval "$base_cmd os bucket delete --bucket-name 'ai-workshop-labs-datasets' --force" 2>/dev/null; then
         echo -e "${GREEN}✓ Bucket deleted${NC}"
     else
         echo -e "${RED}✗ Failed to delete bucket${NC}"

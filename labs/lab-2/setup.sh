@@ -275,7 +275,7 @@ create_knowledge_base() {
     
     local base_cmd=$(build_oci_cmd)
     local name="Hotel_Concierge_Knowledge_Base"
-    local description="Knowledge base containing TripAdvisor reviews for hotel concierge services"
+    local description="Knowledge base containing Hotel Guests reviews for hotel concierge services"
     
     debug_log "Creating knowledge base '$name'..."
     debug_log "Command: $base_cmd generative-ai-agent knowledge-base create --compartment-id '$COMPARTMENT_ID' --display-name '$name' --description '$description' --index-config '{\"indexConfigType\": \"DEFAULT_INDEX_CONFIG\", \"shouldEnableHybridSearch\": true}' --region '$REGION'"
@@ -340,8 +340,8 @@ create_data_source() {
     local response=$(eval "$base_cmd generative-ai-agent data-source create-object-storage-ds \
         --compartment-id '$COMPARTMENT_ID' \
         --knowledge-base-id '$kb_id' \
-        --display-name 'TripAdvisor Reviews Data Source' \
-        --description 'Data source for TripAdvisor reviews' \
+        --display-name 'Hotel Guests Reviews Data Source' \
+        --description 'Hotel Guests Reviews Data Source' \
         --data-source-config-object-storage-prefixes '[{\"namespaceName\": \"$namespace\", \"bucketName\": \"$bucket_name\", \"prefix\": \"$object_name\"}]' \
         --region '$REGION'" 2>&1)
     
@@ -380,10 +380,6 @@ create_agent() {
     
     local base_cmd=$(build_oci_cmd)
     
-    # Create temporary file for welcome message to avoid shell escaping issues
-    local temp_welcome_file="temp_welcome_$$.txt"
-    echo "$greeting" > "$temp_welcome_file"
-    
     debug_log "Creating agent '$name'..."
     debug_log "Command: $base_cmd generative-ai-agent agent create --compartment-id '$COMPARTMENT_ID' --display-name '$name' --description '$description' --welcome-message file://$temp_welcome_file --region '$REGION'"
     
@@ -391,7 +387,7 @@ create_agent() {
         --compartment-id '$COMPARTMENT_ID' \
         --display-name '$name' \
         --description '$description' \
-        --welcome-message file://$temp_welcome_file \
+        --welcome-message 'Hello! I'm your Hotel Concierge Agent. How can I assist you with your stay today?' \
         --region '$REGION'" 2>&1)
     
     # Clean up temporary file
@@ -431,7 +427,7 @@ create_rag_tool() {
     local response=$(eval "$base_cmd generative-ai-agent tool create \
         --agent-id '$agent_id' \
         --compartment-id '$COMPARTMENT_ID' \
-        --description 'RAG tool for hotel concierge services using TripAdvisor reviews' \
+        --description 'RAG tool for hotel concierge services using guest's reviews' \
         --tool-config '{\"toolConfigType\": \"RAG_TOOL_CONFIG\", \"knowledgeBaseConfigs\": [{\"knowledgeBaseId\": \"$kb_id\"}]}' \
         --region '$REGION'" 2>&1)
     
@@ -605,9 +601,11 @@ main() {
        upload_file_to_bucket && \
        create_knowledge_base && \
        create_data_source && \
+       
        create_agent "Hotel_Concierge_Agent" "Hotel Concierge Agent for basic interactions" "Hello! I'm your Hotel Concierge Agent. How can I assist you with your stay today?" "temp_agent_id.txt" && \
        create_rag_tool && \
        create_agent_endpoint "temp_agent_id.txt" "Hotel_Concierge_Agent-endpoint" "Endpoint for Hotel Concierge Agent" "temp_endpoint_id.txt" && \
+       
        create_agent "Hotel_Concierge_Agent_ADK" "Hotel Concierge Agent for ADK development" "Hello! I'm your Hotel Concierge Agent for ADK development. I can help you with advanced hotel services and tools." "temp_agent_adk_id.txt" && \
        create_agent_endpoint "temp_agent_adk_id.txt" "Hotel_Concierge_Agent_ADK-endpoint" "Endpoint for Hotel Concierge Agent ADK" "temp_endpoint_adk_id.txt"; then
         

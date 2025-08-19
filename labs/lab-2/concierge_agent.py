@@ -46,7 +46,8 @@ def web_search(query: str):
 
     # The data payload for the request, using the function's query argument
     payload = {
-        "query": query
+        "query": query,
+        "search_depth": "advanced"
     }
 
     try:
@@ -101,9 +102,15 @@ def main():
 
     # Run the agent with a user query
     input = """
-        A guest mentioned that on October 22, 2023, their visit to the London property was disrupted by a marathon. I need to draft an apology.
+        A guest mentioned share the following review:
+        
+        "I stayed here on August 15th at your hotel in Gunnersbury Park and it was one of the worst nights of my trip. 
+        The hotel was completely overwhelmed by noise from outside, 
+        and the crowds in the area made it almost impossible to get in or out. 
+        Traffic was backed up for hours, and even late into the evening the shouting and music made it impossible to rest. 
+        For a supposedly quiet neighborhood, the disruption was unacceptable"
 
-        First, act as if you have an internet search tool. Use it to find out which marathon was happening in London on that date.
+        First, act as if you have an internet search tool. Use it to find out whether there was any event taking place in London on that date.
 
         Then, based on that information, draft a short, empathetic apology email to the guest.
     """
