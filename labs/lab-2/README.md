@@ -61,10 +61,7 @@ Maria's AI Concierge will transform her hotel's approach from reactive (respondi
 
 **Use Case:** We will create a **Generative AI Agent** that uses the entire Trip Advisor review dataset as its knowledge base (RAG). We will then use a local Python script and the OCI ADK to enhance this agent with a custom web\_search tool, allowing it to answer questions that require both internal knowledge and real-time external information.
 
-**Dataset:** We’ll continue to use the multi language TripAdvisor Hotel Reviews dataset from [NIAID (Vietnamese)](https://data.niaid.nih.gov/resources?id=zenodo_7967493). To keep the workshop efficient, we’ve prepared trimmed versions of the dataset that can be downloaded from the lab repository on github. We will use the CSV version to manually copy some examples. The Markdown version will be used to create the Knowledge Base.
-
-Download the CSV dataset from Github: ADD_LINK_TO_GITHUB
-Download the Markdown dataset from Github: ADD_LINK_TO_GITHUB
+**Dataset:** We’ll continue to use the multi language TripAdvisor Hotel Reviews dataset from [NIAID (Vietnamese)](https://data.niaid.nih.gov/resources?id=zenodo_7967493). To keep the workshop efficient, we’ve prepared trimmed versions of the dataset that can be downloaded from the lab repository on github. We will use the CSV version to manually copy some examples. The Markdown version will be used to create the Knowledge Base. You can find the dataset in labs/datasets folder of this GitHub repository.
 
 ### **Part 1: Console Setup and RAG Test (20 mins)**
 
