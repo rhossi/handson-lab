@@ -52,10 +52,23 @@ def create_bucket(os_client, ns, compartment_id, bucket_name):
 
 def upload_file(os_client, ns, bucket_name, file_path):
     object_name = Path(file_path).name
-    print(f"🔄 Uploading file '{object_name}' to bucket '{bucket_name}' (with overwrite)...")
-    with open(file_path, "rb") as f:
-        os_client.put_object(ns, bucket_name, object_name, f, if_match="*")
-    print(f"✅ File uploaded successfully: {object_name}")
+    print(f"🔄 Uploading file '{object_name}' to bucket '{bucket_name}'...")
+    
+    try:
+        # First try to upload without if_match (for new objects)
+        with open(file_path, "rb") as f:
+            os_client.put_object(ns, bucket_name, object_name, f)
+        print(f"✅ File uploaded successfully: {object_name}")
+    except oci.exceptions.ServiceError as e:
+        if e.status == 409:  # Conflict - object already exists
+            # Try again with if_match for overwrite
+            print(f"🔄 Object already exists, overwriting...")
+            with open(file_path, "rb") as f:
+                os_client.put_object(ns, bucket_name, object_name, f, if_match="*")
+            print(f"✅ File overwritten successfully: {object_name}")
+        else:
+            raise
+    
     return object_name
 
 
@@ -99,6 +112,25 @@ def create_data_source(agent_client, compartment_id, kb_id, ns, bucket_name, obj
     ds_id = resp.data.id
     print(f"✅ Data source created (ID: {ds_id})")
     return ds_id
+
+
+def create_data_ingestion_job(agent_client, compartment_id, ds_id, kb_id):
+    """Create a data ingestion job to process data from the data source into the knowledge base."""
+    print("🔄 Creating data ingestion job...")
+    
+    details = oci.generative_ai_agent.models.CreateDataIngestionJobDetails(
+        display_name="Hotel Reviews Data Ingestion",
+        description="Data ingestion job for TripAdvisor reviews dataset",
+        compartment_id=compartment_id,
+        data_source_id=ds_id
+    )
+    
+    resp = agent_client.create_data_ingestion_job(details)
+    ingestion_job_id = resp.data.id
+    print(f"✅ Data ingestion job created (ID: {ingestion_job_id})")
+    print("💡 Data ingestion will run in the background. You can monitor progress in the OCI Console.")
+    
+    return ingestion_job_id
 
 
 def create_agent(agent_client, compartment_id, display_name, description, welcome_message):
@@ -146,11 +178,12 @@ def create_agent_endpoint(agent_client, compartment_id, agent_id, display_name):
     return endpoint_id
 
 
-def write_ocids(bucket_name, kb_id, ds_id, agent1_id, agent1_endpoint_id, agent1_tool_id, agent2_id, agent2_endpoint_id):
+def write_ocids(bucket_name, kb_id, ds_id, ingestion_job_id, agent1_id, agent1_endpoint_id, agent1_tool_id, agent2_id, agent2_endpoint_id):
     with open(OCIDS_FILE, "w") as f:
         f.write(f"BUCKET_NAME={bucket_name}\n")
         f.write(f"KNOWLEDGEBASE_ID={kb_id}\n")
         f.write(f"DATASOURCE_ID={ds_id}\n")
+        f.write(f"DATA_INGESTION_JOB_ID={ingestion_job_id}\n")
         f.write(f"HOTEL_CONCIERGE_AGENT_ID={agent1_id}\n")
         f.write(f"HOTEL_CONCIERGE_AGENT_ENDPOINT_ID={agent1_endpoint_id}\n")
         f.write(f"HOTEL_CONCIERGE_AGENT_RAG_TOOL_ID={agent1_tool_id}\n")
@@ -186,12 +219,16 @@ def main():
     bucket = create_bucket(os_client, namespace, compartment_id, BUCKET_NAME)
     object_name = upload_file(os_client, namespace, bucket, FILE_TO_UPLOAD)
 
-    print("\n🧠 STEP 2: Creating Knowledge Base")
+    print("\n🧠 STEP 2: Creating Knowledge Base and Data Source")
     print("-" * 40)
     kb_id = create_knowledge_base(agent_client, compartment_id)
     ds_id = create_data_source(agent_client, compartment_id, kb_id, namespace, bucket, object_name)
+    
+    print("\n📊 STEP 3: Data Ingestion")
+    print("-" * 40)
+    ingestion_job_id = create_data_ingestion_job(agent_client, compartment_id, ds_id, kb_id)
 
-    print("\n🤖 STEP 3: Creating Agents")
+    print("\n🤖 STEP 4: Creating Agents")
     print("-" * 40)
     
     # Create first agent (Hotel_Concierge_Agent) with RAG tool
@@ -217,9 +254,9 @@ def main():
     )
     agent2_endpoint_id = create_agent_endpoint(agent_client, compartment_id, agent2_id, "Hotel_Concierge_Agent_ADK")
 
-    print("\n💾 STEP 4: Saving Configuration")
+    print("\n💾 STEP 5: Saving Configuration")
     print("-" * 40)
-    write_ocids(bucket, kb_id, ds_id, agent1_id, agent1_endpoint_id, agent1_tool_id, agent2_id, agent2_endpoint_id)
+    write_ocids(bucket, kb_id, ds_id, ingestion_job_id, agent1_id, agent1_endpoint_id, agent1_tool_id, agent2_id, agent2_endpoint_id)
 
     print("\n🎉 Setup Complete!")
     print("=" * 60)
@@ -227,6 +264,7 @@ def main():
     print(f"   • Bucket: {bucket}")
     print(f"   • Knowledge Base: {kb_id}")
     print(f"   • Data Source: {ds_id}")
+    print(f"   • Data Ingestion Job: {ingestion_job_id}")
     print(f"   • Hotel_Concierge_Agent: {agent1_id}")
     print(f"   • Hotel_Concierge_Agent_ADK: {agent2_id}")
     print(f"   • RAG Tool: {agent1_tool_id}")
