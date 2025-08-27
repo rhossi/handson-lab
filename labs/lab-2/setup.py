@@ -26,7 +26,7 @@ from pathlib import Path
 
 OCIDS_FILE = "GENERATED_OCIDS.txt"
 BUCKET_NAME = "ai-workshop-labs-datasets"
-FILE_TO_UPLOAD = "../datasets/TripAdvisorReviewsMultiLang.md"
+FILE_TO_UPLOAD = str((Path(__file__).parent / "../datasets/TripAdvisorReviewsMultiLang.md").resolve())
 
 
 def create_bucket(os_client, ns, compartment_id, bucket_name):
