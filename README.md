@@ -91,9 +91,12 @@ You'll need:
 - Private key file path
 - Fingerprint
 
-### 2. Download/Clone the Repository
+### 2. Download/Clone the Repository and Setup the environment
 
 ```bash
+# OCI CloudShell
+csruntimectl python set python-3.12
+
 # macOS/Linux/Windows
 git clone git@github.com:rhossi/handson-lab.git
 cd handson-lab

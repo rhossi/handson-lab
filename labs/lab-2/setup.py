@@ -32,21 +32,19 @@ FILE_TO_UPLOAD = "../datasets/TripAdvisorReviewsMultiLang.md"
 def create_bucket(os_client, ns, compartment_id, bucket_name):
     print(f"🔄 Checking if bucket '{bucket_name}' exists...")
     try:
-        resp = os_client.get_bucket(ns, bucket_name)
-        print(f"✅ Bucket already exists: {resp.data.name}")
+        details = oci.object_storage.models.CreateBucketDetails(
+            name=bucket_name,
+            compartment_id=compartment_id,
+            public_access_type="NoPublicAccess",
+            storage_tier="Standard",
+        )
+        resp = os_client.create_bucket(ns, details)
+        print(f"✅ Bucket created: {resp.data.name}")
         return resp.data.name
     except oci.exceptions.ServiceError as e:
-        if e.status == 404:
-            print(f"🔄 Creating bucket '{bucket_name}'...")
-            details = oci.object_storage.models.CreateBucketDetails(
-                name=bucket_name,
-                compartment_id=compartment_id,
-                public_access_type="NoPublicAccess",
-                storage_tier="Standard"
-            )
-            resp = os_client.create_bucket(ns, details)
-            print(f"✅ Bucket created: {resp.data.name}")
-            return resp.data.name
+        if e.status == 409 and e.code == "BucketAlreadyExists":
+            print(f"✅ Bucket already exists: {bucket_name}")
+            return bucket_name
         raise
 
 
