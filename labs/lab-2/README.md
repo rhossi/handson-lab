@@ -61,7 +61,7 @@ Maria's AI Concierge will transform her hotel's approach from reactive (respondi
 
 **Use Case:** We will create a **Generative AI Agent** that uses the entire Trip Advisor review dataset as its knowledge base (RAG). We will then use a local Python script and the OCI ADK to enhance this agent with a custom web\_search tool, allowing it to answer questions that require both internal knowledge and real-time external information.
 
-**Dataset:** We’ll continue to use the multi language TripAdvisor Hotel Reviews dataset from [NIAID (Vietnamese)](https://data.niaid.nih.gov/resources?id=zenodo_7967493). To keep the workshop efficient, we’ve prepared trimmed versions of the dataset that can be downloaded from the lab repository on github. We will use the CSV version to manually copy some examples. The Markdown version will be used to create the Knowledge Base. You can find the dataset in labs/datasets folder of this GitHub repository.
+**Dataset:** We’ll continue to use the multi language TripAdvisor Hotel Reviews dataset from [NIAID (Vietnamese)](https://data.niaid.nih.gov/resources?id=zenodo_7967493). To keep the workshop efficient, we’ve prepared trimmed versions of the dataset that can be downloaded from the lab repository on github. We will use the CSV version to manually copy some examples. The Markdown version will be used only to create the Knowledge Base. You can find the dataset in labs/datasets folder of this GitHub repository.
 
 ### **Part 1: Console Setup and RAG Test (20 mins)**
 
@@ -72,7 +72,7 @@ Maria's AI Concierge will transform her hotel's approach from reactive (respondi
 1. **Upload Downloaded Dataset to Object Storage:**  
    - In the OCI Console, navigate to **Storage** \> **Object Storage & Archive Storage**.  
    - Create a new bucket named ai-workshop-labs-datasets.  
-   - Upload the tripadvisor\_hotel\_reviews.csv file into this bucket.
+   - Upload the TripAdvisorReviewsMultiLang.md file into this bucket.
 
 2. **Create a Knowledge Base in Gen AI Agents:**  
    - Navigate to **Analytics & AI** \> **AI Services** \> **Generative AI Agents**.  
@@ -121,13 +121,13 @@ Note: If you ran the setup scripts, go straight to bullet 3.
 5. **Update Placeholders in the .env file:**
    - Copy .env.example file to .env
    - Open .env file
-   - Replace the placeholder \<replace with your knowledge base id\> with the Knowledge Base OCID.  
-   - Replace the placeholder \<replace with your agent endpoint id\> with the Agent Endpoint OCID you just gathered.  
-   - Replace the placeholder \<replace with your tavily api key\> with your Tavily AI API key.  
+   - Replace the placeholder \<replace with your knowledge base id\> with the KNOWLEDGEBASE_ID from the GENERATED_OCIDS.txt file
+   - Replace the placeholder \<replace with your agent endpoint id\> with the HOTEL_CONCIERGE_AGENT_ADK_ENDPOINT_ID from the GENERATED_OCIDS.txt file
+   - Replace the placeholder \<replace with your tavily api key\> with your Tavily AI API key from https://www.tavily.com/
 
 6. **Run the Agent:**  
    - Execute the script from your terminal:  
-     python run\_concierge\_agent.py
+     python concierge\_agent.py
 
    - The script will connect to your existing agent. The agent.setup() command will synchronize the tools, notice the new web\_search tool in your code, and add it to your agent's capabilities without removing the RAG tool you added in the console. It will then run the query and print the final response.
 
