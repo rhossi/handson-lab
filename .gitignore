@@ -1,6 +1,6 @@
 # Generated OCI resource files (contain sensitive OCIDs)
 GENERATED_OCIDS.txt
-
+.DS_Store
 # Python
 __pycache__/
 *.py[cod]

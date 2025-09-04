@@ -26,7 +26,6 @@ from pathlib import Path
 
 OCIDS_FILE = "GENERATED_OCIDS.txt"
 BUCKET_NAME = "ai-workshop-labs-datasets"
-FILE_TO_UPLOAD = str((Path(__file__).parent / "../datasets/TripAdvisorReviewsMultiLang.md").resolve())
 
 
 def create_bucket(os_client, ns, compartment_id, bucket_name):
@@ -196,11 +195,18 @@ def main():
     
     parser = argparse.ArgumentParser(description="OCI Generative AI Agent Setup")
     parser.add_argument("--compartment-id", help="Optional compartment OCID (defaults to tenancy from OCI config)")
+    parser.add_argument("--region", default="us-chicago-1", help="OCI region (defaults to us-chicago-1)")
+    default_file_to_upload = str((Path(__file__).parent / "../datasets/TripAdvisorReviewsMultiLang.md").resolve())
+    parser.add_argument("--file-to-upload", default=default_file_to_upload, help=f"File to upload (defaults to {default_file_to_upload})")
     args = parser.parse_args()
 
     # Load config (DEFAULT profile or OCI_CLI_PROFILE if set)
     print("🔄 Loading OCI configuration...")
     config = oci.config.from_file("~/.oci/config", oci.config.DEFAULT_PROFILE)
+
+    # Set region
+    config["region"] = args.region
+    print(f"✅ Using region: {config['region']}")
 
     # Default: tenancy from config file
     compartment_id = args.compartment_id if args.compartment_id else config["tenancy"]
@@ -215,7 +221,7 @@ def main():
     print("\n📦 STEP 1: Setting up Object Storage")
     print("-" * 40)
     bucket = create_bucket(os_client, namespace, compartment_id, BUCKET_NAME)
-    object_name = upload_file(os_client, namespace, bucket, FILE_TO_UPLOAD)
+    object_name = upload_file(os_client, namespace, bucket, args.file_to_upload)
 
     print("\n🧠 STEP 2: Creating Knowledge Base and Data Source")
     print("-" * 40)
