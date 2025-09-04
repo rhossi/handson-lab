@@ -1,0 +1,78 @@
+# Python Development Guidelines for OCI Generative AI Agents
+
+## OCI ADK Patterns
+
+When working with OCI Agent Development Kit (ADK), follow these patterns:
+
+### Agent Client Setup
+
+```python
+from oci.addons.adk import Agent, AgentClient, tool
+
+# For API Key authentication
+client = AgentClient(
+    config="~/.oci/config",
+    region='us-chicago-1'
+)
+
+# For Instance Principal authentication
+client = AgentClient(
+    auth_type="instance_principal",
+    region='us-chicago-1'
+)
+```
+
+### Tool Definition
+
+Always use the `@tool` decorator for custom functions:
+
+```python
+@tool
+def custom_function(param: str) -> Dict[str, Any]:
+    """Function description.
+    
+    Args:
+        param(str): Parameter description
+    """
+    return {"result": "value"}
+```
+
+### Agent Creation and Setup
+
+```python
+agent = Agent(
+    client=client,
+    agent_endpoint_id="your_endpoint_id",
+    instructions="Agent instructions",
+    tools=[custom_function]
+)
+
+agent.setup()  # Always call setup() before running
+response = agent.run("user query")
+```
+
+## Authentication Best Practices
+
+- Use API Key authentication for local development
+- Use Instance Principal authentication for OCI CloudShell
+- Always test authentication before agent operations
+- Reference [test.py](mdc:labs/lab-2/test.py) for debugging authentication issues
+
+## Error Handling
+
+- Wrap OCI operations in try-catch blocks
+- Log authentication and API call failures
+- Use the debugging patterns from [test.py](mdc:labs/lab-2/test.py)
+
+## Dependencies
+
+Key dependencies are defined in [pyproject.toml](mdc:pyproject.toml):
+
+- `oci[adk]>=2.158.0` - OCI SDK with ADK support
+- `dotenv>=0.9.9` - Environment variable management
+- `requests>=2.32.4` - HTTP requests for web search tools
+description:
+globs:
+alwaysApply: true
+
+---

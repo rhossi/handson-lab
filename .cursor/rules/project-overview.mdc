@@ -1,0 +1,56 @@
+# OCI Generative AI Agent Hands-On Lab Project
+
+This is a hands-on lab project for learning Oracle Cloud Infrastructure (OCI) Generative AI Agents. The project demonstrates building AI agents for hotel concierge services using OCI's Agent Development Kit (ADK).
+
+## Project Structure
+
+- **Main entry point**: [main.py](mdc:main.py) - Simple entry point for the project
+- **Project configuration**: [pyproject.toml](mdc:pyproject.toml) - Python project dependencies and metadata
+- **Main documentation**: [README.md](mdc:README.md) - Comprehensive setup and usage guide
+- **Lab modules**: [labs/](mdc:labs/) - Contains individual lab exercises
+
+## Lab Structure
+
+### Lab 1: Basic Review Analysis
+
+- **Location**: [labs/lab-1/](mdc:labs/lab-1/)
+- **Purpose**: Individual review analysis in multiple languages
+- **Key files**: [labs/lab-1/README.md](mdc:labs/lab-1/README.md)
+
+### Lab 2: Advanced Agentic Concierge
+
+- **Location**: [labs/lab-2/](mdc:labs/lab-2/)
+- **Purpose**: Building a comprehensive hotel concierge agent with RAG and web search capabilities
+- **Key files**:
+  - [labs/lab-2/README.md](mdc:labs/lab-2/README.md) - Detailed lab instructions
+  - [labs/lab-2/concierge_agent.py](mdc:labs/lab-2/concierge_agent.py) - Main agent implementation
+  - [labs/lab-2/test.py](mdc:labs/lab-2/test.py) - Authentication and debugging tests
+  - [labs/lab-2/setup.py](mdc:labs/lab-2/setup.py) - Setup automation
+
+## Datasets
+
+- **Location**: [labs/datasets/](mdc:labs/datasets/)
+- **Content**: TripAdvisor multi-language hotel reviews
+- **Formats**: CSV and Markdown versions for different use cases
+
+## Key Technologies
+
+- **OCI Generative AI Agents**: Core AI agent platform
+- **OCI ADK (Agent Development Kit)**: Python SDK for building agents
+- **RAG (Retrieval Augmented Generation)**: Knowledge base integration
+- **Web Search Tools**: Real-time internet information retrieval
+- **Multi-language Support**: Vietnamese, Chinese, Korean, and English reviews
+
+## Use Case: Hotel Concierge Agent
+
+The project demonstrates building an AI concierge for the Grand Plaza Hotel in Ho Chi Minh City that can:
+
+- Analyze guest reviews in multiple languages
+- Identify patterns across thousands of reviews
+- Search the internet for real-time information
+- Provide proactive guest service solutions
+description:
+globs:
+alwaysApply: true
+
+---

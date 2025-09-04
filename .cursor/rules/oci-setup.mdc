@@ -1,0 +1,92 @@
+# OCI Setup and Configuration
+
+## Prerequisites
+
+### Required Tools
+
+- **OCI CLI**: For command-line operations
+- **UV**: Python package manager (see [pyproject.toml](mdc:pyproject.toml))
+- **Git LFS**: For large file handling
+- **jq**: JSON parsing (macOS/Linux)
+
+### Authentication Methods
+
+1. **API Key Authentication**: For local development
+   - Configure via `oci setup config`
+   - Uses `~/.oci/config` file
+2. **Instance Principal**: For OCI CloudShell
+   - Automatic authentication in OCI environment
+   - No configuration files needed
+
+## Supported Regions
+
+Generative AI Agents are available in:
+
+- `us-chicago-1`
+- `eu-frankfurt-1`
+- `ap-osaka-1`
+
+## Setup Scripts
+
+### Automated Setup
+
+- **macOS/Linux**: [labs/lab-2/setup.sh](mdc:labs/lab-2/setup.sh)
+- **Windows**: [labs/lab-2/setup.ps1](mdc:labs/lab-2/setup.ps1)
+
+### Manual Setup Steps
+
+1. Create Generative AI Agent
+2. Create Agent Endpoint with security features disabled
+3. Create Knowledge Base with TripAdvisor dataset
+4. Configure environment variables
+
+## Resource Management
+
+### Generated Files
+
+- `agent_id.txt` - Agent OCID
+- `endpoint_id.txt` - Endpoint OCID  
+- `endpoint_url.txt` - Endpoint URL
+- `GENERATED_OCIDS.txt` - All OCIDs in one file
+
+### Cleanup
+
+- **macOS/Linux**: [labs/lab-2/cleanup.sh](mdc:labs/lab-2/cleanup.sh)
+- **Windows**: [labs/lab-2/cleanup.ps1](mdc:labs/lab-2/cleanup.ps1)
+- **Python**: [labs/lab-2/cleanup.py](mdc:labs/lab-2/cleanup.py)
+
+## Environment Configuration
+
+### Required Environment Variables
+
+```bash
+KNOWLEDGE_BASE_ID=<knowledge_base_ocid>
+HOTEL_CONCIERGE_AGENT_ADK_ENDPOINT_ID=<endpoint_ocid>
+TAVILY_API_KEY=<tavily_api_key>
+```
+
+### Configuration Files
+
+- `.env` - Environment variables (create from `.env.example`)
+- `~/.oci/config` - OCI CLI configuration
+- [pyproject.toml](mdc:pyproject.toml) - Python dependencies
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Authentication failures**: Test with [test.py](mdc:labs/lab-2/test.py)
+2. **Region not supported**: Use one of the supported regions
+3. **Missing dependencies**: Install via `uv pip install -e .`
+4. **Permission issues**: Check OCI user permissions and policies
+
+### Debugging Tools
+
+- [test.py](mdc:labs/lab-2/test.py) - Comprehensive authentication testing
+- OCI CLI commands for resource verification
+- CloudShell environment for testing
+description:
+globs:
+alwaysApply: true
+
+---
