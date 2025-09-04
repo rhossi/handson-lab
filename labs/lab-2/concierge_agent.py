@@ -4,9 +4,14 @@ import requests
 import json
 import os
 from dotenv import load_dotenv
+import oci
+import logging
 
 # Load environment variables from .env file
 load_dotenv()
+
+# oci.base_client.is_http_log_enabled(True)
+logging.getLogger('oci').setLevel(logging.DEBUG)
 
 # Load configuration from environment variables
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
@@ -73,8 +78,6 @@ def web_search(query: str):
 def main():
 
     client = AgentClient(
-        auth_type="api_key",
-        profile="DEFAULT",
         region="us-chicago-1"
     )
 
