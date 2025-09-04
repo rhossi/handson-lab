@@ -1,0 +1,97 @@
+# Lab 2: Hotel Concierge Agent Development
+
+## Key Files and Their Purposes
+
+### Core Implementation
+
+- [labs/lab-2/concierge_agent.py](mdc:labs/lab-2/concierge_agent.py) - Main agent implementation with RAG and web search
+- [labs/lab-2/test.py](mdc:labs/lab-2/test.py) - Authentication testing and debugging utilities
+- [labs/lab-2/setup.py](mdc:labs/lab-2/setup.py) - Automated setup and cleanup scripts
+
+### Configuration and Documentation
+
+- [labs/lab-2/README.md](mdc:labs/lab-2/README.md) - Detailed lab instructions and use case
+- [labs/lab-2/GENERATED_OCIDS.txt](mdc:labs/lab-2/GENERATED_OCIDS.txt) - Generated OCIDs for OCI resources
+- [labs/lab-2/cleanup.py](mdc:labs/lab-2/cleanup.py) - Resource cleanup utilities
+
+## Development Workflow
+
+### 1. Setup Phase
+
+- Run setup scripts to create OCI resources
+- Configure environment variables in `.env` file
+- Test authentication using [test.py](mdc:labs/lab-2/test.py)
+
+### 2. Agent Development
+
+- Use [concierge_agent.py](mdc:labs/lab-2/concierge_agent.py) as the main implementation
+- Add custom tools using the `@tool` decorator
+- Test agent responses and RAG functionality
+
+### 3. Testing and Debugging
+
+- Use [test.py](mdc:labs/lab-2/test.py) for authentication debugging
+- Test both API Key and Instance Principal authentication
+- Verify agent endpoint connectivity
+
+## Key Concepts
+
+### RAG (Retrieval Augmented Generation)
+
+- Knowledge base integration using TripAdvisor reviews
+- Dataset location: [labs/datasets/](mdc:labs/datasets/)
+- Markdown format for knowledge base creation
+
+### Web Search Integration
+
+- Tavily AI API for real-time internet searches
+- Custom web search tool implementation
+- Combines internal knowledge with external information
+
+### Multi-language Support
+
+- Vietnamese, Chinese, Korean, and English reviews
+- Language-agnostic agent responses
+- Cultural context awareness
+
+## Common Patterns
+
+### Environment Configuration
+
+```python
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+KNOWLEDGE_BASE_ID = os.getenv('KNOWLEDGE_BASE_ID')
+ENDPOINT_ID = os.getenv('HOTEL_CONCIERGE_AGENT_ADK_ENDPOINT_ID')
+TAVILY_API_KEY = os.getenv('TAVILY_API_KEY')
+```
+
+### Web Search Tool
+
+```python
+@tool
+def web_search(query: str) -> Dict[str, Any]:
+    """Search the web for current information.
+    
+    Args:
+        query(str): Search query
+    """
+    # Implementation using Tavily API
+    pass
+```
+
+### Agent Instructions
+
+The agent should be instructed to:
+
+- Use RAG knowledge base for hotel-specific information
+- Use web search for current events and external information
+- Provide helpful, actionable responses to guest queries
+- Identify patterns in guest feedback
+description:
+globs:
+alwaysApply: true
+
+---

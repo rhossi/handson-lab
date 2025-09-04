@@ -1,0 +1,108 @@
+# Dataset and Knowledge Base Management
+
+## Dataset Location and Structure
+
+### Primary Dataset
+
+- **Location**: [labs/datasets/](mdc:labs/datasets/)
+- **Source**: TripAdvisor multi-language hotel reviews
+- **Formats**:
+  - `TripAdvisorReviewsMultiLang.csv` - For manual review and testing
+  - `TripAdvisorReviewsMultiLang.md` - For knowledge base creation
+
+### Dataset Characteristics
+
+- **Languages**: Vietnamese, Chinese, Korean, English
+- **Content**: Hotel guest reviews and feedback
+- **Use Case**: Hotel concierge agent training and RAG implementation
+
+## Knowledge Base Setup
+
+### OCI Object Storage
+
+1. Create bucket: `ai-workshop-labs-datasets`
+2. Upload `TripAdvisorReviewsMultiLang.md` file
+3. Use for knowledge base creation
+
+### Knowledge Base Configuration
+
+- **Name**: `Hotel_Reviews_KB`
+- **Data Source**: Object Storage bucket
+- **Format**: Markdown for optimal RAG performance
+- **Purpose**: Provide hotel-specific knowledge to agents
+
+## RAG Implementation Patterns
+
+### Agent Integration
+
+```python
+# Agent with RAG tool (configured in OCI Console)
+agent = Agent(
+    client=client,
+    agent_endpoint_id=endpoint_id,
+    instructions="Hotel concierge with access to guest reviews"
+)
+```
+
+### Knowledge Base Queries
+
+The agent can query the knowledge base for:
+
+- Common positive/negative feedback patterns
+- Language-specific guest preferences
+- Service quality trends
+- Room and amenity feedback
+
+## Data Processing Workflows
+
+### For Console Testing
+
+- Use Markdown format directly in knowledge base
+- Test with natural language queries
+- Verify RAG tool functionality
+
+### For ADK Development
+
+- Reference knowledge base ID in environment variables
+- Combine with custom tools for enhanced functionality
+- Test pattern recognition across reviews
+
+## Multi-language Considerations
+
+### Language Support
+
+- **Vietnamese**: Primary language for Ho Chi Minh City hotel
+- **Chinese**: International guest feedback
+- **Korean**: Regional guest preferences
+- **English**: International business travelers
+
+### Cultural Context
+
+- Consider cultural differences in feedback patterns
+- Adapt responses based on guest origin
+- Handle language-specific sentiment analysis
+
+## Best Practices
+
+### Data Quality
+
+- Use Markdown format for better RAG performance
+- Ensure consistent data structure
+- Validate multi-language content
+
+### Knowledge Base Management
+
+- Regular updates with new reviews
+- Monitor RAG query performance
+- Backup knowledge base configurations
+
+### Integration Patterns
+
+- Combine RAG with web search for comprehensive responses
+- Use historical data for pattern recognition
+- Implement proactive issue identification
+description:
+globs:
+alwaysApply: true
+
+---
