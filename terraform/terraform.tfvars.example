@@ -1,0 +1,27 @@
+# terraform.tfvars.example - Super simple
+# Copy this to terraform.tfvars and add your real values
+
+# Your OCI credentials (get these from ~/.oci/config or OCI console)
+tenancy_ocid     = "ocid1.tenancy.oc1..aaaaaaaa..."
+user_ocid        = "ocid1.user.oc1..aaaaaaaa..." 
+fingerprint      = "12:34:56:78:90:ab:cd:ef..."
+private_key_path = "~/.oci/oci_api_key.pem"
+
+# Regions
+home_region         = "us-phoenix-1" # Home region for IAM operations
+us_chicago_1_region = "us-chicago-1" # Region other resources
+
+# Common prefix for all users
+prefix = "handsonlab"
+
+# Users to create (reduced to 2 to work within service limits)
+users = [
+  {
+    email = "your.email@oracle.com"
+    name  = "Your Name"
+  },
+  {
+    email = "another.user@oracle.com"
+    name  = "Another User"
+  }
+]

@@ -23,6 +23,7 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+terraform/terraform.tfvars
 
 # Virtual environments
 .env
@@ -62,4 +63,8 @@ logs/
 *.temp
 /tmp/
 /temp/
-.env
+.envterraform/.terraform/
+terraform/.terraform/
+terraform/.terraform/
+*.tfstate
+*.tfstate.backup

@@ -105,7 +105,7 @@ def main():
 
     # Run the agent with a user query
     input = """
-        A guest mentioned share the following review:
+        A guest mentioned the following review:
         
         "I stayed here on August 15th at your hotel in Gunnersbury Park and it was one of the worst nights of my trip. 
         The hotel was completely overwhelmed by noise from outside, 
