@@ -1,3 +1,5 @@
 # Git LFS for large files in datasets folder only
 labs/datasets/*.csv filter=lfs diff=lfs merge=lfs -text
 labs/datasets/*.md filter=lfs diff=lfs merge=lfs -text
+*.txt filter=lfs diff=lfs merge=lfs -text
+*.md filter=lfs diff=lfs merge=lfs -text
