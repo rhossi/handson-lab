@@ -63,4 +63,4 @@ logs/
 *.temp
 /tmp/
 /temp/
-.env
+.envterraform/.terraform/
