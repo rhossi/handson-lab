@@ -23,6 +23,7 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+terraform/terraform.tfvars
 
 # Virtual environments
 .env
